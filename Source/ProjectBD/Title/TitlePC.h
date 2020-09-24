@@ -14,4 +14,18 @@ class PROJECTBD_API ATitlePC : public APlayerController
 {
 	GENERATED_BODY()
 	
+public:
+	virtual void BeginPlay() override;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "UI")
+	TSubclassOf<class UTitleWidgetBase> TitleWidgetClass;
+
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "UI")
+	class UTitleWidgetBase* TitleWidgetObject;
+
+	UFUNCTION(BlueprintCallable)
+	void StartServer();
+
+	UFUNCTION(BlueprintCallable)
+	void ConnectServer(FString ServerIP);
 };
