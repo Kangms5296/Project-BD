@@ -57,6 +57,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
 	float SprintSpeed = 600.0f;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category = "Status")
+	uint64 bIsFire : 1;
+
 	UFUNCTION(Server, Reliable)
 	void C2S_SetFire(bool State);
 	void C2S_SetFire_Implementation(bool State);
