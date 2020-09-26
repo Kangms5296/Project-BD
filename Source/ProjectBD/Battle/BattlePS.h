@@ -14,4 +14,9 @@ class PROJECTBD_API ABattlePS : public APlayerState
 {
 	GENERATED_BODY()
 	
+public:
+	virtual	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "state", Replicated)
+		int PlayerRank = -1;
 };
