@@ -14,8 +14,9 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		Direction = CalculateDirection(Pawn->GetCharacterMovement()->Velocity, Pawn->GetActorRotation());
 
 		bIsCrouched = Pawn->bIsCrouched;
-		bIsFire = Pawn->bIsFire;
 		bIsSprint = Pawn->bIsSprint;
+		bHaveWeapon = Pawn->bHaveWeapon;
+		bIsFire = Pawn->bIsFire;
 		bIsIronsight = Pawn->bIsIronsight;
 
 		// 본을 직접 회전시켜 캐릭터의 기울기를 구현.
@@ -32,10 +33,8 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		{
 			TargetLeanAngle = 0;
 		}
-		CurrentLeanAngle = FMath::FInterpTo(CurrentLeanAngle, TargetLeanAngle, DeltaSeconds,
-			8.0f);
+		CurrentLeanAngle = FMath::FInterpTo(CurrentLeanAngle, TargetLeanAngle, DeltaSeconds, 8.0f);
 
-		// 
 		FRotator AimRotation = Pawn->GetAimOffset();
 		AimYaw = AimRotation.Yaw;
 		AimPitch = AimRotation.Pitch;

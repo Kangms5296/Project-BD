@@ -24,10 +24,13 @@ public:
 	float Direction;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Status")
-	uint64 bIsFire : 1;
+	uint64 bIsSprint : 1;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Status")
-	uint64 bIsSprint : 1;
+	uint64 bHaveWeapon : 1;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Status")
+	uint64 bIsFire : 1;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Status")
 	uint64 bIsIronsight : 1;

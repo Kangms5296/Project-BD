@@ -4,6 +4,8 @@
 #include "PlayerPawn.h"
 #include "../../Weapon/WeaponComponent.h"
 #include "../../Battle/BattleGM.h"
+#include "../../Battle/BattlePC.h"
+#include "../../Battle/UI/BattleWidgetBase.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -98,75 +100,188 @@ void APlayerPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 }
 
+void APlayerPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(APlayerPawn, bIsSprint);
+	DOREPLIFETIME(APlayerPawn, CurrentHP);
+	DOREPLIFETIME(APlayerPawn, MaxHP);
+	DOREPLIFETIME(APlayerPawn, bLeftLean);
+	DOREPLIFETIME(APlayerPawn, bRightLean);
+	//DOREPLIFETIME(APlayerPawn, bHaveWeapon);
+	//DOREPLIFETIME(APlayerPawn, bIsFire);
+	//DOREPLIFETIME(APlayerPawn, bIsReload);
+	//DOREPLIFETIME(APlayerPawn, bIsIronsight);
+}
+
 float APlayerPawn::TakeDamage(float DamageAmount, FDamageEvent const & DamageEvent, AController * EventInstigator, AActor * DamageCauser)
 {
 	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-	
-	return 0.0f;
-}
 
-void APlayerPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
+	if (CurrentHP <= 0)
+	{
+		return 0.0f;
+	}
+
+	if (DamageEvent.IsOfType(FPointDamageEvent::ClassID)) //PointDamage 贸府
+	{
+		FPointDamageEvent* PointDamageEvent = (FPointDamageEvent*)(&DamageEvent);
+
+		if (PointDamageEvent->HitInfo.BoneName.Compare(TEXT("head")) == 0)
+		{
+			CurrentHP = 0;
+		}
+		else
+		{
+			CurrentHP -= DamageAmount;
+			CurrentHP = FMath::Clamp(CurrentHP, 0.0f, MaxHP);
+		}
+		OnRep_CurrentHP();
+
+		if (CurrentHP <= 0)
+		{
+			// 荤噶 贸府
+			S2A_DeadAction(FMath::RandRange(1, 3));
+
+			ABattleGM* GM = Cast<ABattleGM>(UGameplayStatics::GetGameMode(GetWorld()));
+			if (GM)
+			{
+				GM->CountAlivePlayer();
+			}
+		}
+		else
+		{
+			// 乔拜 贸府
+			S2A_HitAction(FMath::RandRange(1, 4));
+		}
+	}
+
+	return CurrentHP;
 }
 
 void APlayerPawn::MoveForward(float AxisValue)
 {
+	FVector CameraLocation;
+	FRotator CameraRotation;
+	GetController()->GetPlayerViewPoint(CameraLocation, CameraRotation);
+
+	FRotator YawBaseRotation = FRotator(0, GetControlRotation().Yaw, 0);
+	FVector CameraForward = UKismetMathLibrary::GetForwardVector(YawBaseRotation);
+	AddMovementInput(CameraForward, AxisValue);
 }
 
 void APlayerPawn::MoveRight(float AxisValue)
 {
+	FVector CameraLocation;
+	FRotator CameraRotation;
+	GetController()->GetPlayerViewPoint(CameraLocation, CameraRotation);
+
+	FRotator YawBaseRotation = FRotator(0, GetControlRotation().Yaw, 0);
+	FVector CameraRight = UKismetMathLibrary::GetRightVector(YawBaseRotation);
+	AddMovementInput(CameraRight, AxisValue);
 }
 
 void APlayerPawn::LookUp(float AxisValue)
 {
+	AddControllerPitchInput(AxisValue);
 }
 
 void APlayerPawn::Turn(float AxisValue)
 {
+	AddControllerYawInput(AxisValue);
 }
 
 void APlayerPawn::C2S_SetSprint_Implementation(bool State)
 {
+	bIsSprint = State;
+	GetCharacterMovement()->MaxWalkSpeed = State ? SprintSpeed : WalkSpeed;
 }
 
 void APlayerPawn::Sprint()
 {
+	//Client
+	bIsSprint = true;
+	GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+
+	//Server
+	C2S_SetSprint(true);
 }
 
 void APlayerPawn::StopSprint()
 {
+	//Client
+	bIsSprint = false;
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+
+	//Server
+	C2S_SetSprint(false);
+}
+
+void APlayerPawn::C2S_SetWeapon_Implementation(bool State)
+{
+
+}
+
+void APlayerPawn::HaveWeapon()
+{
+	bHaveWeapon = true;
+
+	C2S_SetWeapon(true);
+}
+
+void APlayerPawn::DropWeapon()
+{
+	bHaveWeapon = false;
+
+	C2S_SetWeapon(false);
 }
 
 void APlayerPawn::C2S_SetFire_Implementation(bool State)
 {
+
 }
 
 void APlayerPawn::StartFire()
 {
+
 }
 
 void APlayerPawn::StopFire()
 {
+
 }
 
 void APlayerPawn::OnFire()
 {
+
 }
 
 void APlayerPawn::C2S_SetIronsight_Implementation(bool State)
 {
+
 }
 
 void APlayerPawn::StartIronsight()
 {
+
 }
 
 void APlayerPawn::StopIronsight()
 {
+
 }
 
 void APlayerPawn::StartCrouch()
 {
+	if (CanCrouch())
+	{
+		Crouch();
+	}
+	else
+	{
+		UnCrouch();
+	}
 }
 
 void APlayerPawn::C2S_SetReload_Implementation(bool newState)
@@ -179,30 +294,48 @@ void APlayerPawn::Reload()
 
 void APlayerPawn::OnRep_CurrentHP()
 {
+	ABattlePC* PC = Cast<ABattlePC>(GetController());
+	if (PC && PC->IsLocalController())
+	{
+		if (PC->BattleWidgetObject)
+		{
+			PC->BattleWidgetObject->UpdateHPBar(CurrentHP / MaxHP);
+		}
+	}
 }
 
 void APlayerPawn::C2S_SetLeftLean_Implementation(bool State)
 {
+	bLeftLean = State;
 }
 
 void APlayerPawn::StartLeftLean()
 {
+	bLeftLean = true;
+	C2S_SetLeftLean(true);
 }
 
 void APlayerPawn::StopLeftLean()
 {
+	bLeftLean = false;
+	C2S_SetLeftLean(false);
 }
 
 void APlayerPawn::C2S_SetRightLean_Implementation(bool State)
 {
+	bRightLean = State;
 }
 
 void APlayerPawn::StartRightLean()
 {
+	bRightLean = true;
+	C2S_SetRightLean(true);
 }
 
 void APlayerPawn::StopRightLean()
 {
+	bRightLean = false;
+	C2S_SetRightLean(false);
 }
 
 FRotator APlayerPawn::GetAimOffset() const
@@ -224,8 +357,20 @@ void APlayerPawn::S2A_SpawnHitEffectAndDecal_Implementation(FHitResult OutHit)
 
 void APlayerPawn::S2A_HitAction_Implementation(int Number)
 {
+	if (HitActionMontage)
+	{
+		FString SectionName = FString::Printf(TEXT("Hit%d"), Number);
+		PlayAnimMontage(HitActionMontage, 1.0f, FName(SectionName));
+	}
 }
 
 void APlayerPawn::S2A_DeadAction_Implementation(int Number)
 {
+	if (DeadMontage)
+	{
+		FString SectionName = FString::Printf(TEXT("Death_%d"), Number);
+		PlayAnimMontage(DeadMontage, 1.0f, FName(SectionName));
+	}
+
+	DisableInput(Cast<APlayerController>(GetController()));
 }

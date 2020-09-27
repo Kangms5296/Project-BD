@@ -58,6 +58,16 @@ public:
 	float SprintSpeed = 600.0f;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category = "Status")
+	uint64 bHaveWeapon : 1;
+
+	UFUNCTION(Server, Reliable)
+	void C2S_SetWeapon(bool State);
+	void C2S_SetWeapon_Implementation(bool State);
+
+	void HaveWeapon();
+	void DropWeapon();
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category = "Status")
 	uint64 bIsFire : 1;
 
 	UFUNCTION(Server, Reliable)
@@ -80,6 +90,12 @@ public:
 
 	void StartCrouch();
 
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "SpringArm")
+	FVector NormalSpringArmPosition;
+
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "SpringArm")
+	FVector CrouchedSpringArmPosition;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category = "Status")
 	uint8 bIsReload : 1;
 
@@ -87,16 +103,10 @@ public:
 	void C2S_SetReload(bool newState);
 	void C2S_SetReload_Implementation(bool newState);
 
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
-	class UWeaponComponent* Weapon;
-
 	void Reload();
 
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "SpringArm")
-	FVector NormalSpringArmPosition;
-
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "SpringArm")
-	FVector CrouchedSpringArmPosition;
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+	class UWeaponComponent* Weapon;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Data")
 	class UParticleSystem* HitEffect;
