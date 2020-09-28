@@ -24,4 +24,7 @@ public:
 	void CountAlivePlayer();
 
 	void GoLobby();
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Data")
+	TSubclassOf<class AMasterItem> SpawnItemClass;
 };

@@ -4,11 +4,13 @@
 #include "BattleWidgetBase.h"
 #include "Components/TextBlock.h"
 #include "Components/ProgressBar.h"
+#include "Components/Image.h"
 
 void UBattleWidgetBase::NativeConstruct()
 {
 	AliveCount = Cast<UTextBlock>(GetWidgetFromName(TEXT("AliveCount")));
 	HPBar = Cast<UProgressBar>(GetWidgetFromName(TEXT("HPBar")));
+	CrossHair = Cast<UImage>(GetWidgetFromName(TEXT("CrossHair")));
 }
 
 void UBattleWidgetBase::SetAliveCount(int NewCount)

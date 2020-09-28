@@ -23,6 +23,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
 	class UProgressBar* HPBar;
 
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+	class UImage* CrossHair;
+
 	UFUNCTION(BlueprintCallable)
 	void SetAliveCount(int NewCount);
 

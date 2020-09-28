@@ -6,6 +6,8 @@
 #include "BattlePC.h"
 #include "BattlePS.h"
 #include "../Character/Player/PlayerPawn.h"
+#include "../Item/ItemSpawnPoint.h"
+#include "../Item/MasterItem.h"
 #include "Kismet/GameplayStatics.h"
 
 void ABattleGM::PostLogin(APlayerController* NewPlayer)
@@ -32,6 +34,14 @@ void ABattleGM::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//get item spawn point
+	TArray<AActor*> ItemPoints;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AItemSpawnPoint::StaticClass(), ItemPoints);
+
+	for (int i = 0; i < ItemPoints.Num(); ++i)
+	{
+		GetWorld()->SpawnActor<AMasterItem>(SpawnItemClass, ItemPoints[i]->GetActorTransform());
+	}
 }
 
 void ABattleGM::CountAlivePlayer()

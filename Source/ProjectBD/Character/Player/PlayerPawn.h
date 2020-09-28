@@ -182,4 +182,18 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void S2A_DeadAction(int Number);
 	void S2A_DeadAction_Implementation(int Number);
+
+	TArray<class AMasterItem*>NearItemList;
+	void AddNearItem(class AMasterItem* AddItem);
+	void SubNearItem(class AMasterItem* SubItem);
+
+	void Pickup();
+
+	UFUNCTION(Server, Reliable)
+	void C2S_CheckPickupItem(class AMasterItem* PickupItem);
+	void C2S_CheckPickupItem_Implementation(class AMasterItem* NearItem);
+
+	UFUNCTION(Client, Reliable)
+	void S2C_InsertItem(class AMasterItem* PickupItem);
+	void S2C_InsertItem_Implementation(class AMasterItem* NearItem);
 };

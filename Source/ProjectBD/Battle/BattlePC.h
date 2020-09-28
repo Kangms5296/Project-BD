@@ -15,6 +15,8 @@ class PROJECTBD_API ABattlePC : public APlayerController
 	GENERATED_BODY()
 	
 public:
+	ABattlePC();
+
 	virtual void BeginPlay() override;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "UI")
@@ -22,4 +24,14 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "UI")
 	class UBattleWidgetBase* BattleWidgetObject;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "UI")
+	TSubclassOf<class UItemTooltipBase> ItemTooltipClass;
+
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "UI")
+	class UItemTooltipBase* ItemTooltipObject;
+
+	void ShowItemTooltip(FString ItemName);
+
+	void HideItemTooltip();
 };

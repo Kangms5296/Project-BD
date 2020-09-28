@@ -6,6 +6,7 @@
 #include "../../Battle/BattleGM.h"
 #include "../../Battle/BattlePC.h"
 #include "../../Battle/UI/BattleWidgetBase.h"
+#include "../../Item/MasterItem.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -91,13 +92,13 @@ void APlayerPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	
 	PlayerInputComponent->BindAction(TEXT("Reload"), IE_Pressed, this, &APlayerPawn::Reload);
 
-
 	PlayerInputComponent->BindAction(TEXT("LeftLean"), IE_Pressed, this, &APlayerPawn::StartLeftLean);
 	PlayerInputComponent->BindAction(TEXT("LeftLean"), IE_Released, this, &APlayerPawn::StopLeftLean);
 
 	PlayerInputComponent->BindAction(TEXT("RightLean"), IE_Pressed, this, &APlayerPawn::StartRightLean);
 	PlayerInputComponent->BindAction(TEXT("RightLean"), IE_Released, this, &APlayerPawn::StopRightLean);
 
+	PlayerInputComponent->BindAction(TEXT("Pickup"), IE_Pressed, this, &APlayerPawn::Pickup);
 }
 
 void APlayerPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -286,10 +287,12 @@ void APlayerPawn::StartCrouch()
 
 void APlayerPawn::C2S_SetReload_Implementation(bool newState)
 {
+
 }
 
 void APlayerPawn::Reload()
 {
+
 }
 
 void APlayerPawn::OnRep_CurrentHP()
@@ -373,4 +376,56 @@ void APlayerPawn::S2A_DeadAction_Implementation(int Number)
 	}
 
 	DisableInput(Cast<APlayerController>(GetController()));
+}
+
+void APlayerPawn::AddNearItem(AMasterItem * AddItem)
+{
+	NearItemList.Add(AddItem);
+
+	ABattlePC* PC = Cast<ABattlePC>(GetController());
+	if (PC)
+	{
+		PC->ShowItemTooltip(AddItem->ItemData.ItemName);
+	}
+}
+
+void APlayerPawn::SubNearItem(AMasterItem * SubItem)
+{
+	NearItemList.Remove(SubItem);
+
+	ABattlePC* PC = Cast<ABattlePC>(GetController());
+	if (PC)
+	{
+		if (NearItemList.Num() > 0)
+		{
+			PC->ShowItemTooltip(NearItemList[NearItemList.Num() - 1]->ItemData.ItemName);
+		}
+		else
+		{
+			PC->HideItemTooltip();
+		}
+	}
+}
+
+void APlayerPawn::Pickup()
+{
+	if (NearItemList.Num() > 0)
+	{
+		//Server Pickup check
+		C2S_CheckPickupItem(NearItemList[NearItemList.Num() - 1]);
+	}
+}
+
+void APlayerPawn::C2S_CheckPickupItem_Implementation(AMasterItem * NearItem)
+{
+	if (NearItem && !NearItem->IsPendingKill())
+	{
+		S2C_InsertItem(NearItem);
+		NearItem->Destroy();
+	}
+}
+
+void APlayerPawn::S2C_InsertItem_Implementation(AMasterItem * NearItem)
+{
+
 }
