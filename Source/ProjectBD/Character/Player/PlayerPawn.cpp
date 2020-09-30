@@ -47,6 +47,9 @@ APlayerPawn::APlayerPawn()
 	NormalSpringArmPosition = SpringArm->GetRelativeLocation();
 	CrouchedSpringArmPosition = NormalSpringArmPosition + FVector(0, 0, -GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight() / 2);
 
+	LeftLeanSpringArmPosition = FVector(0, -30, 0);
+	RightLeanSpringArmPosition = FVector(0, 30, 0);
+
 	Tags.Add(TEXT("Player"));
 }
 

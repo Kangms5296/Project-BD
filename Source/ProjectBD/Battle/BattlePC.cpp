@@ -5,6 +5,7 @@
 #include "UI/BattleWidgetBase.h"
 #include "../Item/ItemTooltipBase.h"
 #include "../Character/Player/PlayerPCM.h"
+#include "../Character/Player/InventoryWidgetBase.h"
 #include "Components/InputComponent.h"
 
 ABattlePC::ABattlePC()
@@ -33,8 +34,54 @@ void ABattlePC::BeginPlay()
 			ItemTooltipObject->AddToViewport();
 			ItemTooltipObject->SetVisibility(ESlateVisibility::Collapsed);
 		}
+
+		InventoryWidgetObject = CreateWidget<UInventoryWidgetBase>(this, InventoryWidgetClass);
+		if (InventoryWidgetObject)
+		{
+			InventoryWidgetObject->AddToViewport();
+			InventoryWidgetObject->SetVisibility(ESlateVisibility::Collapsed);
+		}
 	}
 }
+
+void ABattlePC::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+
+	InputComponent->BindAction(TEXT("Inventory"), IE_Pressed, this, &ABattlePC::ToggleInventory);
+}
+
+void ABattlePC::ToggleInventory()
+{
+	if (IsShowInventory)
+	{
+		IsShowInventory = false;
+
+		if (InventoryWidgetObject)
+		{
+			InventoryWidgetObject->SetVisibility(ESlateVisibility::Collapsed);
+			bShowMouseCursor = false;
+			SetInputMode(FInputModeGameOnly());
+		}
+	}
+	else
+	{
+		IsShowInventory = true;
+
+		if (InventoryWidgetObject)
+		{
+			InventoryWidgetObject->SetVisibility(ESlateVisibility::Visible);
+			bShowMouseCursor = true;
+			SetInputMode(FInputModeGameAndUI());
+			/*
+			FInputModeGameAndUI inputMode;
+			inputMode.SetHideCursorDuringCapture(false);
+			SetInputMode(inputMode);
+			*/
+		}
+	}
+}
+
 
 void ABattlePC::ShowItemTooltip(FString ItemName)
 {

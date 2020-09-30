@@ -152,6 +152,9 @@ public:
 	void StopLeftLean();
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category = "Status")
+	FVector LeftLeanSpringArmPosition;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category = "Status")
 	uint8 bRightLean : 1;
 
 	UFUNCTION(Server, Reliable)
@@ -160,6 +163,9 @@ public:
 
 	void StartRightLean();
 	void StopRightLean();
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category = "Status")
+	FVector RightLeanSpringArmPosition;
 
 	FRotator GetAimOffset() const;
 

@@ -23,7 +23,19 @@ void APlayerPCM::UpdateCamera(float DeltaTime)
 
 		// Crouch
 		FVector TargetPosition = Pawn->bIsCrouched ? Pawn->CrouchedSpringArmPosition : Pawn->NormalSpringArmPosition;
-		FVector ResultSpringArmPosition = FMath::VInterpTo(Pawn->SpringArm->GetRelativeLocation(), TargetPosition, DeltaTime, 15.0f);
+
+		// Lean
+		FVector LeanAddPosition = FVector::ZeroVector;
+		if (Pawn->bLeftLean && !Pawn->bRightLean)
+		{
+			LeanAddPosition = Pawn->LeftLeanSpringArmPosition;
+		}
+		else if (Pawn->bRightLean && !Pawn->bLeftLean)
+		{
+			LeanAddPosition = Pawn->RightLeanSpringArmPosition;
+		}
+
+		FVector ResultSpringArmPosition = FMath::VInterpTo(Pawn->SpringArm->GetRelativeLocation(), TargetPosition + LeanAddPosition, DeltaTime, 10.0f);
 		Pawn->SpringArm->SetRelativeLocation(ResultSpringArmPosition);
 	}
 }

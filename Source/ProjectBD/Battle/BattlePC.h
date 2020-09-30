@@ -18,6 +18,7 @@ public:
 	ABattlePC();
 
 	virtual void BeginPlay() override;
+	virtual void SetupInputComponent() override;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "UI")
 	TSubclassOf<class UBattleWidgetBase> BattleWidgetClass;
@@ -31,7 +32,15 @@ public:
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "UI")
 	class UItemTooltipBase* ItemTooltipObject;
 
-	void ShowItemTooltip(FString ItemName);
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "UI")
+	TSubclassOf<class UInventoryWidgetBase> InventoryWidgetClass;
 
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "UI")
+	class UInventoryWidgetBase* InventoryWidgetObject;
+
+	bool IsShowInventory;
+	void ToggleInventory();
+
+	void ShowItemTooltip(FString ItemName);
 	void HideItemTooltip();
 };
