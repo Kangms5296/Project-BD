@@ -2,7 +2,8 @@
 
 
 #include "PlayerPawn.h"
-#include "../../Weapon/WeaponComponent.h"
+#include "WeaponComponent.h"
+#include "InventoryWidgetBase.h"
 #include "../../Battle/BattleGM.h"
 #include "../../Battle/BattlePC.h"
 #include "../../Battle/UI/BattleWidgetBase.h"
@@ -18,6 +19,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "Engine/StreamableManager.h"
 
 // Sets default values
 APlayerPawn::APlayerPawn()
@@ -58,7 +60,13 @@ void APlayerPawn::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	CurrentHP = MaxHP;
+	ABattlePC* PC = Cast<ABattlePC>(GetController());
+	if (PC)
+	{
+		Inventory = Cast<ABattlePC>(GetController())->InventoryWidgetObject;
+	}
+
+	CurrentHP = 10;
 	OnRep_CurrentHP();
 }
 
@@ -414,7 +422,6 @@ void APlayerPawn::Pickup()
 {
 	if (NearItemList.Num() > 0)
 	{
-		//Server Pickup check
 		C2S_CheckPickupItem(NearItemList[NearItemList.Num() - 1]);
 	}
 }
@@ -423,12 +430,84 @@ void APlayerPawn::C2S_CheckPickupItem_Implementation(AMasterItem * NearItem)
 {
 	if (NearItem && !NearItem->IsPendingKill())
 	{
-		S2C_InsertItem(NearItem);
+		S2C_InsertItem(NearItem->ItemData);
 		NearItem->Destroy();
 	}
 }
 
-void APlayerPawn::S2C_InsertItem_Implementation(AMasterItem * NearItem)
+void APlayerPawn::S2C_InsertItem_Implementation(FItemDataTable ItemData)
 {
+	Inventory->AddItem(ItemData, ItemData.ItemCount);
+}
 
+void APlayerPawn::UseItem(FItemDataTable ItemData)
+{
+	switch (ItemData.ItemType)
+	{
+	case EItemType::Consume:
+	{
+		if (ItemData.EffectValue1 == "HP")
+		{
+			C2S_RescueHP(ItemData.EffectValue2);
+		}
+	}
+	break;
+
+	case EItemType::Equip:
+	{
+		switch (ItemData.EquipType)
+		{
+		case ESlotType::Weapon:
+		{
+			FStreamableManager Loader;
+			USkeletalMesh* TempMesh = Loader.LoadSynchronous<USkeletalMesh>(ItemData.ItemSkeletalMesh);
+
+			C2S_ArmWeapon(TempMesh);
+		}
+		break;
+		case ESlotType::Head:
+		{
+
+		}
+		break;
+		case ESlotType::Body:
+		{
+
+		}
+		break;
+		}
+	}
+	break;
+	}
+}
+
+void APlayerPawn::C2S_RescueHP_Implementation(int RescueValue)
+{
+	CurrentHP += RescueValue;
+	CurrentHP = FMath::Clamp(CurrentHP, 0.0f, MaxHP);
+	OnRep_CurrentHP();
+
+	S2A_SpawnRescueEffect();
+}
+
+void APlayerPawn::S2A_SpawnRescueEffect_Implementation()
+{
+	if (RescueEffect)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			RescueEffect,
+			GetActorLocation()
+			);
+	};
+}
+
+void APlayerPawn::C2S_ArmWeapon_Implementation(USkeletalMesh* WeaponMesh)
+{
+	S2A_ArmWeapon(WeaponMesh);
+}
+
+void APlayerPawn::S2A_ArmWeapon_Implementation(USkeletalMesh* WeaponMesh)
+{
+	Weapon->SetSkeletalMesh(WeaponMesh);
 }

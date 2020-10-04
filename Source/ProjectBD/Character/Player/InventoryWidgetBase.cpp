@@ -3,6 +3,7 @@
 
 #include "InventoryWidgetBase.h"
 #include "InventorySlotWidgetBase.h"
+#include "../../Item/MasterItem.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
 #include "Components/TextBlock.h"
@@ -68,11 +69,11 @@ FReply UInventoryWidgetBase::NativeOnMouseButtonDown(const FGeometry & InGeometr
 }
 */
 
-bool UInventoryWidgetBase::AddItem(int ItemIndex, int Count)
+bool UInventoryWidgetBase::AddItem(FItemDataTable ItemData, int Count)
 {
 	for (int i = 0; i < Slots.Num(); i++)
 	{
-		if (Slots[i]->IsUsing && Slots[i]->ItemIndex == ItemIndex)
+		if (Slots[i]->IsUsing && Slots[i]->CurrentItem.ItemIndex == ItemData.ItemIndex)
 		{
 			bool Result = Slots[i]->SlotAdd(Count);
 			if (Result)
@@ -87,7 +88,7 @@ bool UInventoryWidgetBase::AddItem(int ItemIndex, int Count)
 	int EmptyCol;
 	if (GetEmptySlotIndex(EmptyRow, EmptyCol))
 	{
-		bool Result = AddItemAtSlot(EmptyRow, EmptyCol, Count);
+		bool Result = SetSlot(EmptyRow, EmptyCol, ItemData, Count);
 		if (Result)
 		{
 			// 새로운 슬롯에 성공적으로 아이템 수만큼 추가
@@ -99,11 +100,11 @@ bool UInventoryWidgetBase::AddItem(int ItemIndex, int Count)
 	return false;
 }
 
-bool UInventoryWidgetBase::SubItem(int ItemIndex, int Count)
+bool UInventoryWidgetBase::SubItem(FItemDataTable ItemData, int Count)
 {
 	for (int i = 0; i < Slots.Num(); i++)
 	{
-		if (Slots[i]->IsUsing && Slots[i]->ItemIndex == ItemIndex)
+		if (Slots[i]->IsUsing && Slots[i]->CurrentItem.ItemIndex == ItemData.ItemIndex)
 		{
 			bool Result = Slots[i]->SlotSub(Count);
 			if (Result)
@@ -140,9 +141,9 @@ void UInventoryWidgetBase::ClearInventory()
 	}
 }
 
-bool UInventoryWidgetBase::SetSlot(int Row, int Col, int ItemIndex, int Count)
+bool UInventoryWidgetBase::SetSlot(int Row, int Col, FItemDataTable ItemData, int Count)
 {
-	bool Result = Slots[GetSlotIndex(Row, Col)]->SlotSet(ItemIndex, Count);
+	bool Result = Slots[GetSlotIndex(Row, Col)]->SlotSet(ItemData, Count);
 
 	return Result;
 }

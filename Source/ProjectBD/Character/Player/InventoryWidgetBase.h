@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "../../Item/ItemDataTable.h"
 #include "InventoryWidgetBase.generated.h"
 
 /**
@@ -33,15 +34,15 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Slot")
 	int Cols;
 
-	bool AddItem(int ItemIndex, int Count); // 인벤토리 내 Index에 해당하는 아이템을 Count 만큼 추가. 만약, 기존에 없는 아이템이면 새로운 Slot에 아이템을 추가.
-	bool SubItem(int ItemIndex, int Count); // 인벤토리 내 Index에 해당하는 아이템을 Count 만큼 제거. 만약, 기존에 없는 아이템이면 False 반환.
+	bool AddItem(FItemDataTable ItemData, int Count); // 인벤토리 내 Index에 해당하는 아이템을 Count 만큼 추가. 만약, 기존에 없는 아이템이면 새로운 Slot에 아이템을 추가.
+	bool SubItem(FItemDataTable ItemData, int Count); // 인벤토리 내 Index에 해당하는 아이템을 Count 만큼 제거. 만약, 기존에 없는 아이템이면 False 반환.
 
 	bool AddItemAtSlot(int Row, int Col, int Count); // RowIndex, ColIndex 위치의 아이템 Count 만큼 추가.
 	bool SubItemAtSlot(int Row, int Col, int Count); // RowIndex, ColIndex 위치의 아이템 Count 만큼 제거.
 
 	void ClearInventory();
 
-	bool SetSlot(int Row, int Col, int ItemIndex, int Count);
+	bool SetSlot(int Row, int Col, FItemDataTable ItemData, int Count);
 	void ResetSlot(int Row, int Col);
 
 	bool GetEmptySlotIndex(int& EmptyRow, int& EmptyCol); // 인벤토리 내 미사용 Slot Index 반환

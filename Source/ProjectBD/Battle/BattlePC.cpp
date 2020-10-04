@@ -6,6 +6,7 @@
 #include "../Item/ItemTooltipBase.h"
 #include "../Character/Player/PlayerPCM.h"
 #include "../Character/Player/InventoryWidgetBase.h"
+#include "../Character/Player/InventoryTooltipBase.h"
 #include "Components/InputComponent.h"
 
 ABattlePC::ABattlePC()
@@ -41,14 +42,14 @@ void ABattlePC::BeginPlay()
 			InventoryWidgetObject->AddToViewport();
 			InventoryWidgetObject->SetVisibility(ESlateVisibility::Collapsed);
 		}
+
+		InventoryTooltipWidgetObject = CreateWidget<UInventoryTooltipBase>(this, InventoryTooltipWidgetClass);
+		if (InventoryTooltipWidgetObject)
+		{
+			InventoryTooltipWidgetObject->AddToViewport();
+			InventoryTooltipWidgetObject->SetVisibility(ESlateVisibility::Collapsed);
+		}
 	}
-}
-
-void ABattlePC::SetupInputComponent()
-{
-	Super::SetupInputComponent();
-
-	InputComponent->BindAction(TEXT("Inventory"), IE_Pressed, this, &ABattlePC::ToggleInventory);
 }
 
 void ABattlePC::ToggleInventory()
@@ -70,6 +71,11 @@ void ABattlePC::ToggleInventory()
 
 		if (InventoryWidgetObject)
 		{
+			int ViewportX;
+			int ViewportY;
+			GetViewportSize(ViewportX, ViewportY);
+			SetMouseLocation(ViewportX * 0.5f, ViewportY * 0.5f);
+
 			InventoryWidgetObject->SetVisibility(ESlateVisibility::Visible);
 			bShowMouseCursor = true;
 			SetInputMode(FInputModeGameAndUI());
@@ -82,6 +88,12 @@ void ABattlePC::ToggleInventory()
 	}
 }
 
+void ABattlePC::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+
+	InputComponent->BindAction(TEXT("Inventory"), IE_Pressed, this, &ABattlePC::ToggleInventory);
+}
 
 void ABattlePC::ShowItemTooltip(FString ItemName)
 {
@@ -97,5 +109,26 @@ void ABattlePC::HideItemTooltip()
 	if (ItemTooltipObject)
 	{
 		ItemTooltipObject->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
+
+void ABattlePC::ShowInventoryTooltip(FString ItemName, FString ItemDesc, FString ItemEffect)
+{
+	if (InventoryTooltipWidgetObject)
+	{
+		FVector2D MousePos;
+		GetMousePosition(MousePos.X, MousePos.Y);
+
+		InventoryTooltipWidgetObject->SetTooltipInfo(ItemName, ItemDesc, ItemEffect);
+		InventoryTooltipWidgetObject->SetTooltipPos(MousePos);
+		InventoryTooltipWidgetObject->SetVisibility(ESlateVisibility::HitTestInvisible);
+	}
+}
+
+void ABattlePC::HideInventoryTooltip()
+{
+	if (InventoryTooltipWidgetObject)
+	{
+		InventoryTooltipWidgetObject->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }

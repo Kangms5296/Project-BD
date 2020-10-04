@@ -11,7 +11,16 @@ enum class EItemType : uint8
 {
 	Unknown = 0		UMETA(Display = "Unknown"),
 	Consume = 1		UMETA(Display = "Consume"),
-	Equip = 2		UMETA(Display = "Equip"),
+	Equip	= 2		UMETA(Display = "Equip"),
+};
+
+UENUM(BlueprintType)
+enum class ESlotType : uint8
+{
+	NotUse	= 0		UMETA(Display = "NotUse"),
+	Weapon	= 1		UMETA(Display = "Weapon"),
+	Body	= 2		UMETA(Display = "Body"),
+	Head	= 3		UMETA(Display = "Head"),
 };
 
 /**
@@ -27,13 +36,25 @@ public:
 	int ItemIndex;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	FString ItemName;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	EItemType ItemType;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	float ItemFloat01;
+	ESlotType EquipType;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	FString ItemName;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	FString ItemDesc;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	FString EffectDesc;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	FString EffectValue1;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	float EffectValue2;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	int ItemCount;
@@ -42,5 +63,8 @@ public:
 	TAssetPtr<class UTexture2D> ItemThumnail;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	TAssetPtr<class UStaticMesh>ItemMesh;
+	TAssetPtr<class UStaticMesh> ItemStaticMesh;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	TAssetPtr<class USkeletalMesh> ItemSkeletalMesh;
 };

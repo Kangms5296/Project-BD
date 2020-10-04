@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "../../Item/ItemDataTable.h"
 #include "InventorySlotWidgetBase.generated.h"
 
 /**
@@ -16,8 +17,10 @@ class PROJECTBD_API UInventorySlotWidgetBase : public UUserWidget
 	
 public:
 	virtual void NativeConstruct() override;
+	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 
-	class UImage* I_Background;
 	class UImage* I_ItemThumnail;
 	class UTextBlock* T_ItemCount;
 
@@ -31,12 +34,12 @@ public:
 	bool IsUsing;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Item")
-	int ItemIndex;
+	FItemDataTable CurrentItem;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Item")
 	int ItemCount;
 
-	bool SlotSet(int NewIndex, int NewCount);
+	bool SlotSet(FItemDataTable ItemData, int NewCount);
 	bool SlotReset();
 	bool SlotAdd(int AddCount);
 	bool SlotSub(int SubCount);

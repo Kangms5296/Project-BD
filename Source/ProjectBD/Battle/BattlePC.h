@@ -38,9 +38,18 @@ public:
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "UI")
 	class UInventoryWidgetBase* InventoryWidgetObject;
 
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "UI")
+	TSubclassOf<class UInventoryTooltipBase> InventoryTooltipWidgetClass;
+
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "UI")
+	class UInventoryTooltipBase* InventoryTooltipWidgetObject;
+
 	bool IsShowInventory;
 	void ToggleInventory();
 
 	void ShowItemTooltip(FString ItemName);
 	void HideItemTooltip();
+
+	void ShowInventoryTooltip(FString ItemName, FString ItemDesc, FString ItemEffect);
+	void HideInventoryTooltip();
 };

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "../../Item/ItemDataTable.h"
 #include "PlayerPawn.generated.h"
 
 UCLASS()
@@ -18,6 +19,8 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	class UInventoryWidgetBase* Inventory; // 인벤토리
 
 public:	
 	// Called every frame
@@ -118,6 +121,9 @@ public:
 	class UParticleSystem* MuzzleFlash;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Data")
+	class UParticleSystem* RescueEffect;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Data")
 	class USoundBase* WeaponSound;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, ReplicatedUsing = "OnRep_CurrentHP", Category = "Status")
@@ -200,6 +206,24 @@ public:
 	void C2S_CheckPickupItem_Implementation(class AMasterItem* NearItem);
 
 	UFUNCTION(Client, Reliable)
-	void S2C_InsertItem(class AMasterItem* PickupItem);
-	void S2C_InsertItem_Implementation(class AMasterItem* NearItem);
+	void S2C_InsertItem(FItemDataTable ItemData);
+	void S2C_InsertItem_Implementation(FItemDataTable ItemData);
+
+	void UseItem(FItemDataTable ItemData);
+
+	UFUNCTION(Server, Reliable)
+	void C2S_RescueHP(int RescueValue);
+	void C2S_RescueHP_Implementation(int RescueValue);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void S2A_SpawnRescueEffect();
+	void S2A_SpawnRescueEffect_Implementation();
+
+	UFUNCTION(Server, Reliable)
+	void C2S_ArmWeapon(class USkeletalMesh* WeaponMesh);
+	void C2S_ArmWeapon_Implementation(class USkeletalMesh* WeaponMesh);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void S2A_ArmWeapon(class USkeletalMesh* WeaponMesh);
+	void S2A_ArmWeapon_Implementation(class USkeletalMesh* WeaponMesh);
 };

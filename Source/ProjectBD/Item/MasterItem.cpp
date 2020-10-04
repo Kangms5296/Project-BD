@@ -36,14 +36,15 @@ void AMasterItem::BeginPlay()
 	{
 		if (HasAuthority())
 		{
-			ItemIndex = FMath::RandRange(1, 5) * 10;
+			ItemIndex = FMath::RandRange(1, 5);
 		}
 
-		ItemData = ItemComponent->GetItemData(ItemIndex);
 		if (ItemIndex != 0)
 		{
+			ItemData = ItemComponent->GetItemData(ItemIndex);
+
 			FStreamableManager Loader;
-			StaticMesh->SetStaticMesh(Loader.LoadSynchronous<UStaticMesh>(ItemData.ItemMesh));
+			StaticMesh->SetStaticMesh(Loader.LoadSynchronous<UStaticMesh>(ItemData.ItemStaticMesh));
 		}
 
 	}
