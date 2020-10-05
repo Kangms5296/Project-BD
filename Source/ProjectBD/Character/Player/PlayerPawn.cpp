@@ -31,7 +31,7 @@ APlayerPawn::APlayerPawn()
 	SpringArm->SetupAttachment(RootComponent);
 
 	SpringArm->SocketOffset = FVector(0, 40.0f, 88.f);
-	SpringArm->TargetArmLength = 120.0f;
+	SpringArm->TargetArmLength = 150.0f;
 	SpringArm->bUsePawnControlRotation = true;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
@@ -59,14 +59,14 @@ APlayerPawn::APlayerPawn()
 void APlayerPawn::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	ABattlePC* PC = Cast<ABattlePC>(GetController());
 	if (PC)
 	{
-		Inventory = Cast<ABattlePC>(GetController())->InventoryWidgetObject;
+		Inventory = Cast<ABattlePC>(GetController())->GetInventory();
 	}
 
-	CurrentHP = 10;
+	CurrentHP = MaxHP;
 	OnRep_CurrentHP();
 }
 
@@ -121,10 +121,10 @@ void APlayerPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerPawn, MaxHP);
 	DOREPLIFETIME(APlayerPawn, bLeftLean);
 	DOREPLIFETIME(APlayerPawn, bRightLean);
-	//DOREPLIFETIME(APlayerPawn, bHaveWeapon);
-	//DOREPLIFETIME(APlayerPawn, bIsFire);
+	DOREPLIFETIME(APlayerPawn, bHaveWeapon);
+	DOREPLIFETIME(APlayerPawn, bIsFire);
 	//DOREPLIFETIME(APlayerPawn, bIsReload);
-	//DOREPLIFETIME(APlayerPawn, bIsIronsight);
+	DOREPLIFETIME(APlayerPawn, bIsIronsight);
 }
 
 float APlayerPawn::TakeDamage(float DamageAmount, FDamageEvent const & DamageEvent, AController * EventInstigator, AActor * DamageCauser)
@@ -232,7 +232,7 @@ void APlayerPawn::StopSprint()
 
 void APlayerPawn::C2S_SetWeapon_Implementation(bool State)
 {
-
+	bHaveWeapon = true;
 }
 
 void APlayerPawn::HaveWeapon()
@@ -251,37 +251,88 @@ void APlayerPawn::DropWeapon()
 
 void APlayerPawn::C2S_SetFire_Implementation(bool State)
 {
-
+	bIsFire = State;
 }
 
 void APlayerPawn::StartFire()
 {
+	if (!bHaveWeapon)
+		return;
 
+	bIsFire = true;
+	C2S_SetFire(true);
+
+	OnFire();
 }
 
 void APlayerPawn::StopFire()
 {
-
+	bIsFire = false;
+	C2S_SetFire(false);
 }
 
 void APlayerPawn::OnFire()
 {
+	if (!bIsFire)
+	{
+		return;
+	}
 
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (PC)
+	{
+		int32 ScreenSizeX;
+		int32 ScreenSizeY;
+		FVector CrosshairWorldPosition; //3D
+		FVector CrosshairWorldDirection; //3D 
+
+		FVector CameraLocation;
+		FRotator CameraRotation;
+
+		//사람 반동
+		int RandX = FMath::RandRange(-20, 20);
+		int RandY = FMath::RandRange(3, 20);
+
+		PC->GetViewportSize(ScreenSizeX, ScreenSizeY);
+		PC->DeprojectScreenPositionToWorld(ScreenSizeX / 2 + RandX, ScreenSizeY / 2 + RandY, CrosshairWorldPosition, CrosshairWorldDirection);
+
+		PC->GetPlayerViewPoint(CameraLocation, CameraRotation);
+
+		//총구 들리기(Tick에서 총 쏜 후에 애니메이션)
+		FRotator PlayerRotation = GetControlRotation();
+		PlayerRotation.Pitch += FMath::FRandRange(0.2f, 1.0f);
+		GetController()->SetControlRotation(PlayerRotation);
+
+		FVector TraceStart = CameraLocation;
+		FVector TraceEnd = TraceStart + (CrosshairWorldDirection * 99999.f);
+
+		C2S_ProcessFire(TraceStart, TraceEnd);
+	}
+
+	GetWorldTimerManager().SetTimer(
+		FireTimerHandle,
+		this,
+		&APlayerPawn::OnFire,
+		0.12f,
+		false
+	);
 }
 
 void APlayerPawn::C2S_SetIronsight_Implementation(bool State)
 {
-
+	bIsIronsight = State;
 }
 
 void APlayerPawn::StartIronsight()
 {
-
+	bIsIronsight = true;
+	C2S_SetIronsight(true);
 }
 
 void APlayerPawn::StopIronsight()
 {
-
+	bIsIronsight = false;
+	C2S_SetIronsight(false);
 }
 
 void APlayerPawn::StartCrouch()
@@ -354,19 +405,112 @@ void APlayerPawn::StopRightLean()
 
 FRotator APlayerPawn::GetAimOffset() const
 {
-	return FRotator();
+	const FVector AimDirWS = GetBaseAimRotation().Vector();
+	const FVector AimDirLS = ActorToWorld().InverseTransformVectorNoScale(AimDirWS);
+	const FRotator AimRotLS = AimDirLS.Rotation();
+
+	return AimRotLS;
 }
 
 void APlayerPawn::C2S_ProcessFire_Implementation(FVector TraceStart, FVector TraceEnd)
 {
+	TArray<TEnumAsByte<EObjectTypeQuery>> Objects;
+
+	Objects.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldDynamic));
+	Objects.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
+	Objects.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_PhysicsBody));
+
+	TArray<AActor*> ActorToIgnore;
+
+	FHitResult OutHit;
+
+	bool Result = UKismetSystemLibrary::LineTraceSingleForObjects(
+		GetWorld(),
+		TraceStart,
+		TraceEnd,
+		Objects,
+		true,
+		ActorToIgnore,
+		EDrawDebugTrace::None,
+		OutHit,
+		true,
+		FLinearColor::Red,
+		FLinearColor::Green,
+		5.0f
+	);
+
+	if (Result)
+	{
+		//all client spawn Hiteffect and Decal
+		S2A_SpawnHitEffectAndDecal(OutHit);
+
+		//Point Damage
+		UGameplayStatics::ApplyPointDamage(OutHit.GetActor(), //맞은놈
+			1.0f,					//데미지
+			-OutHit.ImpactNormal,	//데미지 방향
+			OutHit,					//데미지 충돌 정보
+			GetController(),		//때린 플레이어
+			this,					//때린놈
+			nullptr
+		);
+
+		MakeNoise(1.0f, this, OutHit.ImpactPoint);
+	}
+
+	//All Client Spawn Muzzleflash and Sound
+	S2A_SpawnMuzzleFlashAndSound();
 }
 
 void APlayerPawn::S2A_SpawnMuzzleFlashAndSound_Implementation()
 {
+	//WeaponSound and MuzzleFlash
+	if (WeaponSound)
+	{
+		UGameplayStatics::SpawnSoundAtLocation(GetWorld(),
+			WeaponSound,
+			Weapon->GetComponentLocation()
+		);
+	}
+
+	if (MuzzleFlash)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
+			MuzzleFlash,
+			Weapon->GetSocketTransform(TEXT("Muzzle"))
+		);
+	}
 }
 
 void APlayerPawn::S2A_SpawnHitEffectAndDecal_Implementation(FHitResult OutHit)
 {
+	//HitEffect(Blood) and Decal
+	if (Cast<ACharacter>(OutHit.GetActor()))
+	{
+		//캐릭터
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
+			BloodHitEffect,
+			OutHit.ImpactPoint + (OutHit.ImpactNormal * 10)
+		);
+	}
+	else
+	{
+		//지형
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
+			HitEffect,
+			OutHit.ImpactPoint + (OutHit.ImpactNormal * 10)
+		);
+
+		UDecalComponent* NewDecal = UGameplayStatics::SpawnDecalAtLocation(GetWorld(),
+			NormalDecal,
+			FVector(5, 5, 5),
+			OutHit.ImpactPoint,
+			OutHit.ImpactNormal.Rotation(),
+			10.0f
+		);
+
+		NewDecal->SetFadeScreenSize(0.005f);
+
+	}
 }
 
 void APlayerPawn::S2A_HitAction_Implementation(int Number)
@@ -459,8 +603,11 @@ void APlayerPawn::UseItem(FItemDataTable ItemData)
 		{
 		case ESlotType::Weapon:
 		{
+			HaveWeapon();
+
 			FStreamableManager Loader;
 			USkeletalMesh* TempMesh = Loader.LoadSynchronous<USkeletalMesh>(ItemData.ItemSkeletalMesh);
+			Weapon->SetSkeletalMesh(TempMesh);
 
 			C2S_ArmWeapon(TempMesh);
 		}

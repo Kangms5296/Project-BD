@@ -36,11 +36,14 @@ void ABattlePC::BeginPlay()
 			ItemTooltipObject->SetVisibility(ESlateVisibility::Collapsed);
 		}
 
-		InventoryWidgetObject = CreateWidget<UInventoryWidgetBase>(this, InventoryWidgetClass);
-		if (InventoryWidgetObject)
+		if (InventoryWidgetObject == nullptr)
 		{
-			InventoryWidgetObject->AddToViewport();
-			InventoryWidgetObject->SetVisibility(ESlateVisibility::Collapsed);
+			InventoryWidgetObject = CreateWidget<UInventoryWidgetBase>(this, InventoryWidgetClass);
+			if (InventoryWidgetObject)
+			{
+				InventoryWidgetObject->AddToViewport();
+				InventoryWidgetObject->SetVisibility(ESlateVisibility::Collapsed);
+			}
 		}
 
 		InventoryTooltipWidgetObject = CreateWidget<UInventoryTooltipBase>(this, InventoryTooltipWidgetClass);
@@ -50,6 +53,21 @@ void ABattlePC::BeginPlay()
 			InventoryTooltipWidgetObject->SetVisibility(ESlateVisibility::Collapsed);
 		}
 	}
+}
+
+UInventoryWidgetBase * ABattlePC::GetInventory()
+{
+	if (InventoryWidgetObject == nullptr)
+	{
+		InventoryWidgetObject = CreateWidget<UInventoryWidgetBase>(this, InventoryWidgetClass);
+		if (InventoryWidgetObject)
+		{
+			InventoryWidgetObject->AddToViewport();
+			InventoryWidgetObject->SetVisibility(ESlateVisibility::Collapsed);
+		}
+	}
+
+	return InventoryWidgetObject;
 }
 
 void ABattlePC::ToggleInventory()

@@ -81,6 +81,8 @@ public:
 	void StopFire();
 	void OnFire();
 
+	FTimerHandle FireTimerHandle;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category = "Status")
 	uint64 bIsIronsight : 1;
 

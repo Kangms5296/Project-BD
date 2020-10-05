@@ -44,6 +44,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "UI")
 	class UInventoryTooltipBase* InventoryTooltipWidgetObject;
 
+	class UInventoryWidgetBase* GetInventory();
 	bool IsShowInventory;
 	void ToggleInventory();
 

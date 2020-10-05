@@ -36,7 +36,7 @@ void AMasterItem::BeginPlay()
 	{
 		if (HasAuthority())
 		{
-			ItemIndex = FMath::RandRange(1, 5);
+			ItemIndex = FMath::RandRange(1, 4);
 		}
 
 		if (ItemIndex != 0)
