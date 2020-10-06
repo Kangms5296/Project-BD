@@ -23,6 +23,7 @@ public:
 	*/
 	class UUniformGridPanel* ItemSlots;
 	class UTextBlock* Gold;
+	class UWidgetHeaderBase* InventoryHeader;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Slot")
 	TSubclassOf<class UInventorySlotWidgetBase> InventorySlotWidgetClass;

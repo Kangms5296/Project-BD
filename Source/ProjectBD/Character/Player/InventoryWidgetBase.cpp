@@ -3,6 +3,7 @@
 
 #include "InventoryWidgetBase.h"
 #include "InventorySlotWidgetBase.h"
+#include "WidgetHeaderBase.h"
 #include "../../Item/MasterItem.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
@@ -44,30 +45,11 @@ void UInventoryWidgetBase::NativeConstruct()
 		Gold->SetText(FText::FromString(Temp));
 	}
 
-}
-
-/*
-void UInventoryWidgetBase::NativeOnDragDetected(const FGeometry & InGeometry, const FPointerEvent & InMouseEvent, UDragDropOperation *& OutOperation)
-{
-	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
-	if (OutOperation == nullptr)
+	InventoryHeader = Cast<UWidgetHeaderBase>(GetWidgetFromName(TEXT("InventoryHeader")));
 	{
-		UMyDragDropOperation* oper = NewObject<UMyDragDropOperation>();
-		OutOperation = oper;
-		oper->DefaultDragVisual = this;
+		InventoryHeader->SetOwnerWidget(this);
 	}
 }
-FReply UInventoryWidgetBase::NativeOnMouseButtonDown(const FGeometry & InGeometry, const FPointerEvent & InMouseEvent)
-{
-	FEventReply reply;
-	reply.NativeReply = Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
-	if (InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
-	{
-		reply = UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::LeftMouseButton);
-	}
-	return reply.NativeReply;
-}
-*/
 
 bool UInventoryWidgetBase::AddItem(FItemDataTable ItemData, int Count)
 {

@@ -4,6 +4,7 @@
 #include "PlayerPawn.h"
 #include "WeaponComponent.h"
 #include "InventoryWidgetBase.h"
+#include "MainWidgetBase.h"
 #include "../../Battle/BattleGM.h"
 #include "../../Battle/BattlePC.h"
 #include "../../Battle/UI/BattleWidgetBase.h"
@@ -63,7 +64,7 @@ void APlayerPawn::BeginPlay()
 	ABattlePC* PC = Cast<ABattlePC>(GetController());
 	if (PC)
 	{
-		Inventory = Cast<ABattlePC>(GetController())->GetInventory();
+		Inventory = Cast<ABattlePC>(GetController())->MainWidgetObject->GetInventoryWidget();
 	}
 
 	CurrentHP = MaxHP;

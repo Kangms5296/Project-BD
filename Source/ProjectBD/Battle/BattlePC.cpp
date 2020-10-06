@@ -5,6 +5,7 @@
 #include "UI/BattleWidgetBase.h"
 #include "../Item/ItemTooltipBase.h"
 #include "../Character/Player/PlayerPCM.h"
+#include "../Character/Player/MainWidgetBase.h"
 #include "../Character/Player/InventoryWidgetBase.h"
 #include "../Character/Player/InventoryTooltipBase.h"
 #include "Components/InputComponent.h"
@@ -29,79 +30,10 @@ void ABattlePC::BeginPlay()
 			BattleWidgetObject->AddToViewport();
 		}
 
-		ItemTooltipObject = CreateWidget<UItemTooltipBase>(this, ItemTooltipClass);
-		if (BattleWidgetObject)
+		MainWidgetObject = CreateWidget<UMainWidgetBase>(this, MainWidgetClass);
+		if (MainWidgetObject)
 		{
-			ItemTooltipObject->AddToViewport();
-			ItemTooltipObject->SetVisibility(ESlateVisibility::Collapsed);
-		}
-
-		if (InventoryWidgetObject == nullptr)
-		{
-			InventoryWidgetObject = CreateWidget<UInventoryWidgetBase>(this, InventoryWidgetClass);
-			if (InventoryWidgetObject)
-			{
-				InventoryWidgetObject->AddToViewport();
-				InventoryWidgetObject->SetVisibility(ESlateVisibility::Collapsed);
-			}
-		}
-
-		InventoryTooltipWidgetObject = CreateWidget<UInventoryTooltipBase>(this, InventoryTooltipWidgetClass);
-		if (InventoryTooltipWidgetObject)
-		{
-			InventoryTooltipWidgetObject->AddToViewport();
-			InventoryTooltipWidgetObject->SetVisibility(ESlateVisibility::Collapsed);
-		}
-	}
-}
-
-UInventoryWidgetBase * ABattlePC::GetInventory()
-{
-	if (InventoryWidgetObject == nullptr)
-	{
-		InventoryWidgetObject = CreateWidget<UInventoryWidgetBase>(this, InventoryWidgetClass);
-		if (InventoryWidgetObject)
-		{
-			InventoryWidgetObject->AddToViewport();
-			InventoryWidgetObject->SetVisibility(ESlateVisibility::Collapsed);
-		}
-	}
-
-	return InventoryWidgetObject;
-}
-
-void ABattlePC::ToggleInventory()
-{
-	if (IsShowInventory)
-	{
-		IsShowInventory = false;
-
-		if (InventoryWidgetObject)
-		{
-			InventoryWidgetObject->SetVisibility(ESlateVisibility::Collapsed);
-			bShowMouseCursor = false;
-			SetInputMode(FInputModeGameOnly());
-		}
-	}
-	else
-	{
-		IsShowInventory = true;
-
-		if (InventoryWidgetObject)
-		{
-			int ViewportX;
-			int ViewportY;
-			GetViewportSize(ViewportX, ViewportY);
-			SetMouseLocation(ViewportX * 0.5f, ViewportY * 0.5f);
-
-			InventoryWidgetObject->SetVisibility(ESlateVisibility::Visible);
-			bShowMouseCursor = true;
-			SetInputMode(FInputModeGameAndUI());
-			/*
-			FInputModeGameAndUI inputMode;
-			inputMode.SetHideCursorDuringCapture(false);
-			SetInputMode(inputMode);
-			*/
+			MainWidgetObject->AddToViewport();
 		}
 	}
 }
@@ -113,40 +45,68 @@ void ABattlePC::SetupInputComponent()
 	InputComponent->BindAction(TEXT("Inventory"), IE_Pressed, this, &ABattlePC::ToggleInventory);
 }
 
+void ABattlePC::ToggleInventory()
+{
+	if (IsShowInventory)
+	{
+		IsShowInventory = false;
+
+		if (MainWidgetObject)
+		{
+			bShowMouseCursor = false;
+			SetInputMode(FInputModeGameOnly());
+			MainWidgetObject->HideInventory();
+		}
+	}
+	else
+	{
+		IsShowInventory = true;
+
+		if (MainWidgetObject)
+		{
+			int ViewportX;
+			int ViewportY;
+			GetViewportSize(ViewportX, ViewportY);
+			SetMouseLocation(ViewportX * 0.5f, ViewportY * 0.5f);
+
+			bShowMouseCursor = true;
+			SetInputMode(FInputModeGameAndUI());
+			MainWidgetObject->ShowInventory();
+		}
+	}
+}
+
 void ABattlePC::ShowItemTooltip(FString ItemName)
 {
-	if (ItemTooltipObject)
+	if (MainWidgetObject)
 	{
-		ItemTooltipObject->SetItemName(ItemName);
-		ItemTooltipObject->SetVisibility(ESlateVisibility::Visible);
+		MainWidgetObject->ShowItemTooltip(ItemName);
 	}
 }
 
 void ABattlePC::HideItemTooltip()
 {
-	if (ItemTooltipObject)
+	if (MainWidgetObject)
 	{
-		ItemTooltipObject->SetVisibility(ESlateVisibility::Collapsed);
+		MainWidgetObject->HideItemTooltip();
 	}
 }
 
 void ABattlePC::ShowInventoryTooltip(FString ItemName, FString ItemDesc, FString ItemEffect)
 {
-	if (InventoryTooltipWidgetObject)
+	if (MainWidgetObject)
 	{
 		FVector2D MousePos;
 		GetMousePosition(MousePos.X, MousePos.Y);
 
-		InventoryTooltipWidgetObject->SetTooltipInfo(ItemName, ItemDesc, ItemEffect);
-		InventoryTooltipWidgetObject->SetTooltipPos(MousePos);
-		InventoryTooltipWidgetObject->SetVisibility(ESlateVisibility::HitTestInvisible);
+		MainWidgetObject->ShowInventoryTooltip(ItemName, ItemDesc, ItemEffect, MousePos);
 	}
 }
 
 void ABattlePC::HideInventoryTooltip()
 {
-	if (InventoryTooltipWidgetObject)
+	if (MainWidgetObject)
 	{
-		InventoryTooltipWidgetObject->SetVisibility(ESlateVisibility::Collapsed);
+		MainWidgetObject->HideInventoryTooltip();
 	}
 }

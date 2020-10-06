@@ -27,24 +27,11 @@ public:
 	class UBattleWidgetBase* BattleWidgetObject;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "UI")
-	TSubclassOf<class UItemTooltipBase> ItemTooltipClass;
+	TSubclassOf<class UMainWidgetBase> MainWidgetClass;
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "UI")
-	class UItemTooltipBase* ItemTooltipObject;
+	class UMainWidgetBase* MainWidgetObject;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "UI")
-	TSubclassOf<class UInventoryWidgetBase> InventoryWidgetClass;
-
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "UI")
-	class UInventoryWidgetBase* InventoryWidgetObject;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "UI")
-	TSubclassOf<class UInventoryTooltipBase> InventoryTooltipWidgetClass;
-
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "UI")
-	class UInventoryTooltipBase* InventoryTooltipWidgetObject;
-
-	class UInventoryWidgetBase* GetInventory();
 	bool IsShowInventory;
 	void ToggleInventory();
 
