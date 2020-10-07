@@ -38,6 +38,7 @@ public:
 	void ShowItemTooltip(FString ItemName);
 	void HideItemTooltip();
 
+	bool IsShowInventoryTooltip;
 	void ShowInventoryTooltip(FString ItemName, FString ItemDesc, FString ItemEffect);
 	void HideInventoryTooltip();
 };

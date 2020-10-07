@@ -20,6 +20,8 @@ public:
 	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
+	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
 
 	class UImage* I_ItemThumnail;
 	class UTextBlock* T_ItemCount;
@@ -39,8 +41,14 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Item")
 	int ItemCount;
 
-	bool SlotSet(FItemDataTable ItemData, int NewCount);
-	bool SlotReset();
-	bool SlotAdd(int AddCount);
-	bool SlotSub(int SubCount);
+	bool SetSlot(FItemDataTable ItemData, int NewCount);
+	bool ResetSlot();
+	bool AddCount(int AddCount);
+	bool SubCount(int SubCount);
+
+	class UInventoryWidgetBase* InventoryWidget;
+	void SetOwner(class UInventoryWidgetBase* NewInventoryWidget);
+
+	bool DoChangeThumnail;
+	void DragSlotSet(FItemDataTable ItemData);
 };

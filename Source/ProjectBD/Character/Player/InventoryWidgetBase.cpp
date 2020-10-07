@@ -28,6 +28,7 @@ void UInventoryWidgetBase::NativeConstruct()
 				UInventorySlotWidgetBase* CurSlot = CreateWidget<UInventorySlotWidgetBase>(UGameplayStatics::GetPlayerController(GetWorld(), 0), InventorySlotWidgetClass);
 				CurSlot->RowIndex = Row;
 				CurSlot->ColIndex = Col;
+				CurSlot->SetOwner(this);
 				Slots.Add(CurSlot);
 
 				// Slot 화면에 표시.
@@ -57,7 +58,7 @@ bool UInventoryWidgetBase::AddItem(FItemDataTable ItemData, int Count)
 	{
 		if (Slots[i]->IsUsing && Slots[i]->CurrentItem.ItemIndex == ItemData.ItemIndex)
 		{
-			bool Result = Slots[i]->SlotAdd(Count);
+			bool Result = Slots[i]->AddCount(Count);
 			if (Result)
 			{
 				// 기존 슬롯에 성공적으로 아이템 수만큼 추가
@@ -88,7 +89,7 @@ bool UInventoryWidgetBase::SubItem(FItemDataTable ItemData, int Count)
 	{
 		if (Slots[i]->IsUsing && Slots[i]->CurrentItem.ItemIndex == ItemData.ItemIndex)
 		{
-			bool Result = Slots[i]->SlotSub(Count);
+			bool Result = Slots[i]->SubCount(Count);
 			if (Result)
 			{
 				// 기존 슬롯에 성공적으로 아이템 수만큼 제거
@@ -101,38 +102,24 @@ bool UInventoryWidgetBase::SubItem(FItemDataTable ItemData, int Count)
 	return false;
 }
 
-bool UInventoryWidgetBase::AddItemAtSlot(int Row, int Col, int Count)
-{
-	bool Result = Slots[GetSlotIndex(Row, Col)]->SlotAdd(Count);
-
-	return Result;
-}
-
-bool UInventoryWidgetBase::SubItemAtSlot(int Row, int Col, int Count)
-{
-	bool Result = Slots[GetSlotIndex(Row, Col)]->SlotSub(Count);
-
-	return Result;
-}
-
 void UInventoryWidgetBase::ClearInventory()
 {
 	for (UInventorySlotWidgetBase* MySlot : Slots)
 	{
-		MySlot->SlotReset();
+		MySlot->ResetSlot();
 	}
 }
 
 bool UInventoryWidgetBase::SetSlot(int Row, int Col, FItemDataTable ItemData, int Count)
 {
-	bool Result = Slots[GetSlotIndex(Row, Col)]->SlotSet(ItemData, Count);
+	bool Result = Slots[GetSlotIndex(Row, Col)]->SetSlot(ItemData, Count);
 
 	return Result;
 }
 
 void UInventoryWidgetBase::ResetSlot(int Row, int Col)
 {
-	Slots[GetSlotIndex(Row, Col)]->SlotReset();
+	Slots[GetSlotIndex(Row, Col)]->ResetSlot();
 }
 
 bool UInventoryWidgetBase::GetEmptySlotIndex(int& EmptyRow, int& EmptyCol)

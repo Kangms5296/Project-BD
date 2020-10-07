@@ -24,5 +24,5 @@ public:
 
 	void SetTooltipInfo(FString NewName, FString NewDesc, FString NewEffect);
 	void SetTooltipPos(FVector2D NewPos);
-
+	void SetTooltipOffset(FVector2D OffsetPos);
 };

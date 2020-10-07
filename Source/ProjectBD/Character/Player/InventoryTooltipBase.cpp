@@ -22,3 +22,8 @@ void UInventoryTooltipBase::SetTooltipPos(FVector2D NewPos)
 {
 	SetPositionInViewport(NewPos);
 }
+
+void UInventoryTooltipBase::SetTooltipOffset(FVector2D OffsetPos)
+{
+	SetAlignmentInViewport(OffsetPos);
+}

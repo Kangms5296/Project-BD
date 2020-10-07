@@ -37,7 +37,7 @@ public:
 	void HideItemTooltip();
 
 	class UInventoryTooltipBase* GetInventoryTooltip();
-	void ShowInventoryTooltip(FString ItemName, FString ItemDesc, FString ItemEffect, FVector2D MousePos);
+	void ShowInventoryTooltip(FString ItemName, FString ItemDesc, FString ItemEffect, FVector2D MousePos, FIntPoint ViewportSize);
 	void HideInventoryTooltip();
 
 

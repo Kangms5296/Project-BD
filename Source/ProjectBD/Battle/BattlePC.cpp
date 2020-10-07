@@ -94,19 +94,32 @@ void ABattlePC::HideItemTooltip()
 
 void ABattlePC::ShowInventoryTooltip(FString ItemName, FString ItemDesc, FString ItemEffect)
 {
+	if (IsShowInventoryTooltip)
+		return;
+
 	if (MainWidgetObject)
 	{
 		FVector2D MousePos;
 		GetMousePosition(MousePos.X, MousePos.Y);
 
-		MainWidgetObject->ShowInventoryTooltip(ItemName, ItemDesc, ItemEffect, MousePos);
+		FIntPoint ViewportSize;
+		GetViewportSize(ViewportSize.X, ViewportSize.Y);
+
+		MainWidgetObject->ShowInventoryTooltip(ItemName, ItemDesc, ItemEffect, MousePos, ViewportSize);
+
+		IsShowInventoryTooltip = true;
 	}
 }
 
 void ABattlePC::HideInventoryTooltip()
 {
+	if (!IsShowInventoryTooltip)
+		return;
+
 	if (MainWidgetObject)
 	{
 		MainWidgetObject->HideInventoryTooltip();
+
+		IsShowInventoryTooltip = false;
 	}
 }

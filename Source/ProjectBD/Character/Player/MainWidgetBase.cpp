@@ -129,12 +129,20 @@ UInventoryTooltipBase * UMainWidgetBase::GetInventoryTooltip()
 	}
 }
 
-void UMainWidgetBase::ShowInventoryTooltip(FString ItemName, FString ItemDesc, FString ItemEffect, FVector2D MousePos)
+void UMainWidgetBase::ShowInventoryTooltip(FString ItemName, FString ItemDesc, FString ItemEffect, FVector2D MousePos, FIntPoint ViewportSize)
 {
 	if (InventoryTooltipWidgetObject)
 	{
 		InventoryTooltipWidgetObject->SetTooltipInfo(ItemName, ItemDesc, ItemEffect);
+
+		FVector2D OffsetPos;
+		OffsetPos.X = MousePos.X / ViewportSize.X;
+		OffsetPos.Y = MousePos.Y / ViewportSize.Y;
+		InventoryTooltipWidgetObject->SetTooltipOffset(OffsetPos);
+
 		InventoryTooltipWidgetObject->SetTooltipPos(MousePos);
+
+
 		InventoryTooltipWidgetObject->AddToViewport();
 	}
 }
