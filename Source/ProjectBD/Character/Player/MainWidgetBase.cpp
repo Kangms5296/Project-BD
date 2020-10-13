@@ -57,19 +57,6 @@ bool UMainWidgetBase::NativeOnDrop(const FGeometry & InGeometry, const FDragDrop
 	return true;
 }
 
-UInventoryWidgetBase * UMainWidgetBase::GetInventoryWidget()
-{
-	if (InventoryWidgetObject)
-	{
-		return InventoryWidgetObject;
-	}
-	else
-	{
-		InventoryWidgetObject = Cast<UInventoryWidgetBase>(GetWidgetFromName(TEXT("InventoryWidget")));
-		return InventoryWidgetObject;
-	}
-}
-
 void UMainWidgetBase::ShowInventory()
 {
 	if (InventoryWidgetObject)

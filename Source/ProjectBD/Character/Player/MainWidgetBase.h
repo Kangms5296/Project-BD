@@ -14,7 +14,7 @@ class PROJECTBD_API UMainWidgetBase : public UUserWidget
 {
 	GENERATED_BODY()
 
-private:
+public:
 	UPROPERTY()
 	class UInventoryWidgetBase* InventoryWidgetObject;
 
@@ -28,7 +28,6 @@ public:
 	virtual void NativeConstruct() override;
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
 
-	class UInventoryWidgetBase* GetInventoryWidget();
 	void ShowInventory();
 	void HideInventory();
 
@@ -39,6 +38,4 @@ public:
 	class UInventoryTooltipBase* GetInventoryTooltip();
 	void ShowInventoryTooltip(FString ItemName, FString ItemDesc, FString ItemEffect, FVector2D MousePos, FIntPoint ViewportSize);
 	void HideInventoryTooltip();
-
-
 };

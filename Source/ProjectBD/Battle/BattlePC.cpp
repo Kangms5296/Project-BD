@@ -4,6 +4,7 @@
 #include "BattlePC.h"
 #include "UI/BattleWidgetBase.h"
 #include "../Item/ItemTooltipBase.h"
+#include "../Character/Player/PlayerPawn.h"
 #include "../Character/Player/PlayerPCM.h"
 #include "../Character/Player/MainWidgetBase.h"
 #include "../Character/Player/InventoryWidgetBase.h"
@@ -24,16 +25,18 @@ void ABattlePC::BeginPlay()
 		bShowMouseCursor = false;
 		SetInputMode(FInputModeGameOnly());
 
-		BattleWidgetObject = CreateWidget<UBattleWidgetBase>(this, BattleWidgetClass);
-		if (BattleWidgetObject)
+		if (IsLocalPlayerController())
 		{
-			BattleWidgetObject->AddToViewport();
-		}
+			BattleWidgetObject = CreateWidget<UBattleWidgetBase>(this, BattleWidgetClass);
+			if (BattleWidgetObject)
+			{
+				BattleWidgetObject->AddToViewport();
+			}
 
-		MainWidgetObject = CreateWidget<UMainWidgetBase>(this, MainWidgetClass);
-		if (MainWidgetObject)
-		{
-			MainWidgetObject->AddToViewport();
+			if (MainWidgetObject == nullptr)
+			{
+				GetMainWidgetObject();
+			}
 		}
 	}
 }
@@ -43,6 +46,20 @@ void ABattlePC::SetupInputComponent()
 	Super::SetupInputComponent();
 
 	InputComponent->BindAction(TEXT("Inventory"), IE_Pressed, this, &ABattlePC::ToggleInventory);
+}
+
+UMainWidgetBase * ABattlePC::GetMainWidgetObject()
+{
+	if (MainWidgetObject == nullptr && IsLocalPlayerController())
+	{
+		MainWidgetObject = CreateWidget<UMainWidgetBase>(this, MainWidgetClass);
+		if (MainWidgetObject)
+		{
+			MainWidgetObject->AddToViewport();
+		}
+	}
+
+	return MainWidgetObject;
 }
 
 void ABattlePC::ToggleInventory()

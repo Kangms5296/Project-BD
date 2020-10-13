@@ -31,4 +31,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateHPBar(float Percent);
+
+	void ShowCrosshair();
+	void HideCrosshair();
 };

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "../Item/ItemDataTable.h"
 #include "BattleGM.generated.h"
 
 /**
@@ -27,4 +28,10 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Data")
 	TSubclassOf<class AMasterItem> SpawnItemClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+	class UDataTable* ItemDataTable;
+
+	UFUNCTION(BlueprintCallable)
+	FItemDataTable GetItemData(int Index) const;
 };

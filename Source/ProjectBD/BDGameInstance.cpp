@@ -2,6 +2,7 @@
 
 
 #include "BDGameInstance.h"
+#include "JsonHelper.h"
 
 FString UBDGameInstance::GetUserID()
 {
@@ -17,4 +18,14 @@ FString UBDGameInstance::GetUserID()
 void UBDGameInstance::SetUserID(FString NewUserID)
 {
 	UserID = NewUserID;
+}
+
+UJsonHelper * UBDGameInstance::GetJsonHelper()
+{
+	if (JsonHelper == nullptr)
+	{
+		JsonHelper = NewObject<UJsonHelper>();
+	}
+
+	return JsonHelper;
 }

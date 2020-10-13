@@ -41,11 +41,20 @@ void UInventorySlotWidgetBase::NativeOnMouseEnter(const FGeometry & InGeometry, 
 {
 	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
 
+}
+
+FReply UInventorySlotWidgetBase::NativeOnMouseMove(const FGeometry & InGeometry, const FPointerEvent & InMouseEvent)
+{
+	FEventReply Reply;
+	Reply.NativeReply = Super::NativeOnMouseMove(InGeometry, InMouseEvent);
+
 	ABattlePC* PC = Cast<ABattlePC>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 	if (PC && IsUsing)
 	{
 		PC->ShowInventoryTooltip(CurrentItem.ItemName, CurrentItem.ItemDesc, CurrentItem.EffectDesc);
 	}
+
+	return Reply.NativeReply;
 }
 
 void UInventorySlotWidgetBase::NativeOnMouseLeave(const FPointerEvent & InMouseEvent)
@@ -84,6 +93,9 @@ FReply UInventorySlotWidgetBase::NativeOnMouseButtonDown(const FGeometry & InGeo
 				{
 					Pawn->UseItem(CurrentItem);
 					SubCount(1);
+
+					// Ironsight 모드로의 진입을 막는다.
+					Reply = UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::RightMouseButton);
 				}
 			}
 
@@ -106,21 +118,24 @@ void UInventorySlotWidgetBase::NativeOnDragDetected(const FGeometry & InGeometry
 {
 	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
 
-	USlotWidgetDD* SlotDD = Cast<USlotWidgetDD>(UWidgetBlueprintLibrary::CreateDragDropOperation(USlotWidgetDD::StaticClass()));
-	if (SlotDD == nullptr)
+	if (InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
 	{
-		return;
+		USlotWidgetDD* SlotDD = Cast<USlotWidgetDD>(UWidgetBlueprintLibrary::CreateDragDropOperation(USlotWidgetDD::StaticClass()));
+		if (SlotDD == nullptr)
+		{
+			return;
+		}
+
+		SlotDD->FromSlot = this;
+
+		UInventorySlotWidgetBase* DragVisualSlot = CreateWidget<UInventorySlotWidgetBase>(UGameplayStatics::GetPlayerController(GetWorld(), 0), GetClass());
+		DragVisualSlot->DragSlotSet(CurrentItem);
+
+		SlotDD->DefaultDragVisual = DragVisualSlot;
+		SlotDD->Pivot = EDragPivot::CenterCenter;
+
+		OutOperation = SlotDD;
 	}
-
-	SlotDD->FromSlot = this;
-
-	UInventorySlotWidgetBase* DragVisualSlot = CreateWidget<UInventorySlotWidgetBase>(UGameplayStatics::GetPlayerController(GetWorld(), 0), GetClass());
-	DragVisualSlot->DragSlotSet(CurrentItem);
-
-	SlotDD->DefaultDragVisual = DragVisualSlot;
-	SlotDD->Pivot = EDragPivot::CenterCenter;
-
-	OutOperation = SlotDD;
 }
 
 bool UInventorySlotWidgetBase::NativeOnDrop(const FGeometry & InGeometry, const FDragDropEvent & InDragDropEvent, UDragDropOperation * InOperation)

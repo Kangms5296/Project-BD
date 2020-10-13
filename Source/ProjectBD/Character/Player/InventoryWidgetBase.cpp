@@ -5,12 +5,16 @@
 #include "InventorySlotWidgetBase.h"
 #include "WidgetHeaderBase.h"
 #include "../../Item/MasterItem.h"
+#include "../../JsonHelper.h"
+#include "../../BDGameInstance.h"
+#include "../../Battle/BattleGM.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
 #include "Components/TextBlock.h"
 #include "Components/Border.h"
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
+#include "kismet/GameplayStatics.h"
 
 void UInventoryWidgetBase::NativeConstruct()
 {
@@ -141,3 +145,59 @@ int UInventoryWidgetBase::GetSlotIndex(int Row, int Col)
 {
 	return Row * Cols + Col;
 }
+
+void UInventoryWidgetBase::LoadDatasFromFile(FString SavedPath)
+{
+	UBDGameInstance* BDInstance = Cast<UBDGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+	if (BDInstance)
+	{
+		FString OutputString = BDInstance->GetJsonHelper()->LoadFromFile(SavedPath);
+		auto JsonArr = BDInstance->GetJsonHelper()->GetArrayField(OutputString, "Items");
+
+		TSharedPtr<FJsonObject> TempObject;
+		for (int i = 0; i < JsonArr.Num(); i++)
+		{
+			FString _ItemIndex = JsonArr[i]->AsObject()->GetStringField("ItemIndex");
+			FString _ItemCount = JsonArr[i]->AsObject()->GetStringField("ItemCount");
+
+			ABattleGM* GM = Cast<ABattleGM>(UGameplayStatics::GetGameMode(GetWorld()));
+			if (GM)
+			{
+				FItemDataTable NewItem = GM->GetItemData(FCString::Atoi(*_ItemIndex));
+				AddItem(NewItem, FCString::Atoi(*_ItemCount));
+			}
+		}
+	}
+}
+
+void UInventoryWidgetBase::SaveDatasToFile(FString SavePath)
+{
+	UBDGameInstance* BDInstance = Cast<UBDGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+	if (BDInstance)
+	{
+		// Make JsonObject Array
+		TArray<TSharedPtr<FJsonValue>> JsonArr;
+		for (int i = 0; i < Slots.Num(); i++)
+		{
+			if (Slots[i]->IsUsing)
+			{
+				TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
+				JsonObject->SetStringField("ItemIndex", FString::FromInt(Slots[i]->CurrentItem.ItemIndex));
+				JsonObject->SetStringField("ItemCount", FString::FromInt(Slots[i]->ItemCount));
+				TSharedRef< FJsonValueObject > JsonValue = MakeShareable(new FJsonValueObject(JsonObject));
+
+				JsonArr.Add(JsonValue);
+			}
+		}
+
+		// JsonArray To String
+		TSharedPtr<class FJsonObject> JsonStr;
+		BDInstance->GetJsonHelper()->StartMake(JsonStr);
+		BDInstance->GetJsonHelper()->AddArrayField(JsonStr, "Items", JsonArr);
+		FString OutputString = BDInstance->GetJsonHelper()->EndMake(JsonStr);
+
+		// Save File
+		BDInstance->GetJsonHelper()->SaveToFile(OutputString, SavePath);
+	}
+}
+

@@ -17,10 +17,7 @@ class PROJECTBD_API UInventoryWidgetBase : public UUserWidget
 
 public:
 	virtual void NativeConstruct() override;
-	/*
-	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
-	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
-	*/
+
 	class UUniformGridPanel* ItemSlots;
 	class UTextBlock* Gold;
 	class UWidgetHeaderBase* InventoryHeader;
@@ -46,4 +43,7 @@ public:
 	bool GetEmptySlotIndex(int& EmptyRow, int& EmptyCol); // 인벤토리 내 미사용 Slot Index 반환
 
 	int GetSlotIndex(int Row, int Col);
+
+	void LoadDatasFromFile(FString SavedPath);
+	void SaveDatasToFile(FString SavePath);
 };

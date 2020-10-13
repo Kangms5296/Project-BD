@@ -132,3 +132,8 @@ void ABattleGM::GoLobby()
 {
 	GetWorld()->ServerTravel(TEXT("Lobby"));
 }
+
+FItemDataTable ABattleGM::GetItemData(int Index) const
+{
+	return *ItemDataTable->FindRow<FItemDataTable>(*FString::FromInt(Index), TEXT("ItemIndex"));
+}

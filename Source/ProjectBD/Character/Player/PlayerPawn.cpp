@@ -61,14 +61,28 @@ void APlayerPawn::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ABattlePC* PC = Cast<ABattlePC>(GetController());
-	if (PC)
-	{
-		Inventory = Cast<ABattlePC>(GetController())->MainWidgetObject->GetInventoryWidget();
-	}
-
 	CurrentHP = MaxHP;
 	OnRep_CurrentHP();
+
+	ABattlePC* PC = Cast<ABattlePC>(GetController());
+	if (PC && PC->IsLocalController())
+	{
+		Inventory = PC->GetMainWidgetObject()->InventoryWidgetObject;
+
+		FString LoadPath = FPaths::ProjectContentDir() + "Data/Inventory/InventoryData.txt";
+		Inventory->LoadDatasFromFile(LoadPath);
+	}
+}
+
+void APlayerPawn::UnPossessed()
+{
+	ABattlePC* PC = Cast<ABattlePC>(GetController());
+	if (PC && PC->IsLocalController())
+	{
+		Inventory = PC->GetMainWidgetObject()->InventoryWidgetObject;
+	}
+
+	Super::UnPossessed();
 }
 
 // Called every frame
@@ -240,12 +254,24 @@ void APlayerPawn::HaveWeapon()
 {
 	bHaveWeapon = true;
 
+	ABattlePC* PC = Cast<ABattlePC>(GetController());
+	if (PC)
+	{
+		PC->BattleWidgetObject->ShowCrosshair();
+	}
+
 	C2S_SetWeapon(true);
 }
 
 void APlayerPawn::DropWeapon()
 {
 	bHaveWeapon = false;
+
+	ABattlePC* PC = Cast<ABattlePC>(GetController());
+	if (PC)
+	{
+		PC->BattleWidgetObject->HideCrosshair();
+	}
 
 	C2S_SetWeapon(false);
 }

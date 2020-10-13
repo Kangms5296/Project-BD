@@ -16,11 +16,14 @@ class PROJECTBD_API UBDGameInstance : public UGameInstance
 	
 public:
 	FString GetUserID();
-
 	void SetUserID(FString NewUserID);
 
+	class UJsonHelper* GetJsonHelper();
 
 protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		FString UserID;
+	FString UserID;
+
+	UPROPERTY()
+	class UJsonHelper* JsonHelper;
 };

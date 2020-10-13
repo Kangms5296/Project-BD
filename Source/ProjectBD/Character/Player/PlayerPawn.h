@@ -19,6 +19,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void UnPossessed() override;
 
 	class UInventoryWidgetBase* Inventory; // 인벤토리
 
@@ -90,8 +91,10 @@ public:
 	void C2S_SetIronsight(bool State);
 	void C2S_SetIronsight_Implementation(bool State);
 
+	bool CanIronsight;
 	void StartIronsight();
 	void StopIronsight();
+
 
 	void StartCrouch();
 

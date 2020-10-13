@@ -10,7 +10,9 @@ void UBattleWidgetBase::NativeConstruct()
 {
 	AliveCount = Cast<UTextBlock>(GetWidgetFromName(TEXT("AliveCount")));
 	HPBar = Cast<UProgressBar>(GetWidgetFromName(TEXT("HPBar")));
+
 	CrossHair = Cast<UImage>(GetWidgetFromName(TEXT("CrossHair")));
+	HideCrosshair();
 }
 
 void UBattleWidgetBase::SetAliveCount(int NewCount)
@@ -27,5 +29,21 @@ void UBattleWidgetBase::UpdateHPBar(float Percent)
 	if (HPBar)
 	{
 		HPBar->SetPercent(Percent);
+	}
+}
+
+void UBattleWidgetBase::ShowCrosshair()
+{
+	if (CrossHair)
+	{
+		CrossHair->SetVisibility(ESlateVisibility::Visible);
+	}
+}
+
+void UBattleWidgetBase::HideCrosshair()
+{
+	if (CrossHair)
+	{
+		CrossHair->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
