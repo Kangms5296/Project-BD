@@ -283,7 +283,7 @@ void APlayerPawn::C2S_SetFire_Implementation(bool State)
 
 void APlayerPawn::StartFire()
 {
-	if (!bHaveWeapon)
+	if (!bHaveWeapon || GetCharacterMovement()->IsFalling())
 		return;
 
 	bIsFire = true;
@@ -352,6 +352,9 @@ void APlayerPawn::C2S_SetIronsight_Implementation(bool State)
 
 void APlayerPawn::StartIronsight()
 {
+	if (GetCharacterMovement()->IsFalling())
+		return;
+
 	bIsIronsight = true;
 	C2S_SetIronsight(true);
 }

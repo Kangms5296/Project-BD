@@ -38,6 +38,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Status")
 	uint64 bIsCrouched : 1;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Status")
+	uint64 bIsInAir : 1;
+
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Status")
 	float CurrentLeanAngle;

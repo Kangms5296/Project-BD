@@ -18,6 +18,7 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bHaveWeapon = Pawn->bHaveWeapon;
 		bIsFire = Pawn->bIsFire;
 		bIsIronsight = Pawn->bIsIronsight;
+		bIsInAir = Pawn->GetCharacterMovement()->IsFalling();
 
 		// 본을 직접 회전시켜 캐릭터의 기울기를 구현.
 		float TargetLeanAngle;
