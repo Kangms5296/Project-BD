@@ -62,11 +62,19 @@ bool UInventoryWidgetBase::AddItem(FItemDataTable ItemData, int Count)
 	{
 		if (Slots[i]->IsUsing && Slots[i]->CurrentItem.ItemIndex == ItemData.ItemIndex)
 		{
-			bool Result = Slots[i]->AddCount(Count);
-			if (Result)
+			if (Slots[i]->ItemCount + Count <= ItemData.iValue1)
 			{
-				// 기존 슬롯에 성공적으로 아이템 수만큼 추가
-				return true;
+				bool Result = Slots[i]->AddCount(Count);
+				if (Result)
+				{
+					// 기존 슬롯에 성공적으로 아이템 수만큼 추가
+					return true;
+				}
+			}
+			else
+			{
+				Slots[i]->AddCount(ItemData.iValue1 - Slots[i]->ItemCount);
+				Count -= ItemData.iValue1 - Slots[i]->ItemCount;
 			}
 		}
 	}
@@ -160,12 +168,8 @@ void UInventoryWidgetBase::LoadDatasFromFile(FString SavedPath)
 			FString _ItemIndex = JsonArr[i]->AsObject()->GetStringField("ItemIndex");
 			FString _ItemCount = JsonArr[i]->AsObject()->GetStringField("ItemCount");
 
-			ABattleGM* GM = Cast<ABattleGM>(UGameplayStatics::GetGameMode(GetWorld()));
-			if (GM)
-			{
-				FItemDataTable NewItem = GM->GetItemData(FCString::Atoi(*_ItemIndex));
-				AddItem(NewItem, FCString::Atoi(*_ItemCount));
-			}
+			FItemDataTable NewItem = BDInstance->GetItemData(FCString::Atoi(*_ItemIndex));
+			AddItem(NewItem, FCString::Atoi(*_ItemCount));
 		}
 	}
 }

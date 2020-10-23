@@ -70,6 +70,7 @@ void APlayerPawn::BeginPlay()
 		Inventory = PC->GetMainWidgetObject()->InventoryWidgetObject;
 
 		FString LoadPath = FPaths::ProjectContentDir() + "Data/Inventory/InventoryData.txt";
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *LoadPath);
 		Inventory->LoadDatasFromFile(LoadPath);
 	}
 }
@@ -451,6 +452,7 @@ void APlayerPawn::C2S_ProcessFire_Implementation(FVector TraceStart, FVector Tra
 	Objects.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_PhysicsBody));
 
 	TArray<AActor*> ActorToIgnore;
+	ActorToIgnore.Add(this);
 
 	FHitResult OutHit;
 
@@ -504,10 +506,10 @@ void APlayerPawn::S2A_SpawnMuzzleFlashAndSound_Implementation()
 
 	if (MuzzleFlash)
 	{
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
+		UGameplayStatics::SpawnEmitterAttached(
 			MuzzleFlash,
-			Weapon->GetSocketTransform(TEXT("Muzzle"))
-		);
+			Weapon,
+			TEXT("Muzzle"));
 	}
 }
 
@@ -611,7 +613,7 @@ void APlayerPawn::C2S_CheckPickupItem_Implementation(AMasterItem * NearItem)
 
 void APlayerPawn::S2C_InsertItem_Implementation(FItemDataTable ItemData)
 {
-	Inventory->AddItem(ItemData, ItemData.ItemCount);
+	Inventory->AddItem(ItemData, 1);
 }
 
 void APlayerPawn::UseItem(FItemDataTable ItemData)
@@ -620,10 +622,7 @@ void APlayerPawn::UseItem(FItemDataTable ItemData)
 	{
 	case EItemType::Consume:
 	{
-		if (ItemData.EffectValue1 == "HP")
-		{
-			C2S_RescueHP(ItemData.EffectValue2);
-		}
+		C2S_RescueHP(ItemData.fValue1);
 	}
 	break;
 
@@ -671,11 +670,10 @@ void APlayerPawn::S2A_SpawnRescueEffect_Implementation()
 {
 	if (RescueEffect)
 	{
-		UGameplayStatics::SpawnEmitterAtLocation(
-			GetWorld(),
+		UGameplayStatics::SpawnEmitterAttached(
 			RescueEffect,
-			GetActorLocation()
-			);
+			GetMesh(),
+			TEXT("ParticleSocket"));
 	};
 }
 

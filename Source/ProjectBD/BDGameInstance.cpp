@@ -29,3 +29,8 @@ UJsonHelper * UBDGameInstance::GetJsonHelper()
 
 	return JsonHelper;
 }
+
+FItemDataTable UBDGameInstance::GetItemData(int Index) const
+{
+	return *ItemDataTable->FindRow<FItemDataTable>(*FString::FromInt(Index), TEXT("ItemIndex"));
+}

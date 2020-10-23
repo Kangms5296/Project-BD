@@ -8,6 +8,7 @@
 #include "../Character/Player/PlayerPawn.h"
 #include "../Item/ItemSpawnPoint.h"
 #include "../Item/MasterItem.h"
+#include "../BDGameInstance.h"
 #include "Kismet/GameplayStatics.h"
 
 void ABattleGM::PostLogin(APlayerController* NewPlayer)
@@ -34,14 +35,20 @@ void ABattleGM::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//get item spawn point
-	TArray<AActor*> ItemPoints;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AItemSpawnPoint::StaticClass(), ItemPoints);
-
-	for (int i = 0; i < ItemPoints.Num(); ++i)
+	// 모든 유저의 BeginPlay 함수가 호출된 뒤, 레벨 내 모든 아이템을 화면에 표시
+	FTimerHandle WaitHandle;
+	float WaitTime = 3.0f;
+	GetWorld()->GetTimerManager().SetTimer(WaitHandle, FTimerDelegate::CreateLambda([&]()
 	{
-		GetWorld()->SpawnActor<AMasterItem>(SpawnItemClass, ItemPoints[i]->GetActorTransform());
-	}
+		TArray<AActor*> ItemPoints;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AItemSpawnPoint::StaticClass(), ItemPoints);
+
+		for (int i = 0; i < ItemPoints.Num(); ++i)
+		{
+			AMasterItem* NewItem = GetWorld()->SpawnActor<AMasterItem>(SpawnItemClass, ItemPoints[i]->GetActorTransform());
+			NewItem->Init(Cast<UBDGameInstance>(GetGameInstance())->GetItemData(FMath::RandRange(1, 4)));
+		}
+	}), WaitTime, false);
 }
 
 void ABattleGM::CountAlivePlayer()
@@ -131,9 +138,4 @@ void ABattleGM::CountAlivePlayer()
 void ABattleGM::GoLobby()
 {
 	GetWorld()->ServerTravel(TEXT("Lobby"));
-}
-
-FItemDataTable ABattleGM::GetItemData(int Index) const
-{
-	return *ItemDataTable->FindRow<FItemDataTable>(*FString::FromInt(Index), TEXT("ItemIndex"));
 }

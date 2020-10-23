@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "Item/ItemDataTable.h"
 #include "BDGameInstance.generated.h"
 
 /**
@@ -19,6 +20,12 @@ public:
 	void SetUserID(FString NewUserID);
 
 	class UJsonHelper* GetJsonHelper();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+	class UDataTable* ItemDataTable;
+
+	UFUNCTION(BlueprintCallable)
+	FItemDataTable GetItemData(int Index) const;
 
 protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)

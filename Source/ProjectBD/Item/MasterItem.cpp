@@ -32,23 +32,6 @@ void AMasterItem::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (ItemComponent->ItemDataTable)
-	{
-		if (HasAuthority())
-		{
-			ItemIndex = FMath::RandRange(1, 4);
-		}
-
-		if (ItemIndex != 0)
-		{
-			ItemData = ItemComponent->GetItemData(ItemIndex);
-
-			FStreamableManager Loader;
-			StaticMesh->SetStaticMesh(Loader.LoadSynchronous<UStaticMesh>(ItemData.ItemStaticMesh));
-		}
-
-	}
-
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &AMasterItem::ProcessBeginOverlap);
 	Sphere->OnComponentEndOverlap.AddDynamic(this, &AMasterItem::ProcessEndOverlap);
 }
@@ -64,7 +47,20 @@ void AMasterItem::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(AMasterItem, ItemIndex);
+	DOREPLIFETIME(AMasterItem, ItemData);
+}
+
+void AMasterItem::OnRep_ItemData()
+{
+	FStreamableManager Loader;
+	StaticMesh->SetStaticMesh(Loader.LoadSynchronous<UStaticMesh>(ItemData.ItemStaticMesh));
+}
+
+void AMasterItem::Init(FItemDataTable NewData)
+{
+	ItemData = NewData;
+
+	OnRep_ItemData();
 }
 
 void AMasterItem::ProcessBeginOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)

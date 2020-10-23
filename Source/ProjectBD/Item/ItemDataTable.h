@@ -51,13 +51,16 @@ public:
 	FString EffectDesc;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	FString EffectValue1;
+	int iValue1;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	float EffectValue2;
+	int iValue2;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	int ItemCount;
+	float fValue1;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	float fValue2;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	TAssetPtr<class UTexture2D> ItemThumnail;
