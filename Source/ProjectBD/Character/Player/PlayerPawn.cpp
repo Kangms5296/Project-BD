@@ -3,8 +3,9 @@
 
 #include "PlayerPawn.h"
 #include "WeaponComponent.h"
-#include "InventoryWidgetBase.h"
 #include "MainWidgetBase.h"
+#include "InventoryWidgetBase.h"
+#include "InventorySlotWidgetBase.h"
 #include "../../Battle/BattleGM.h"
 #include "../../Battle/BattlePC.h"
 #include "../../Battle/UI/BattleWidgetBase.h"
@@ -70,7 +71,6 @@ void APlayerPawn::BeginPlay()
 		Inventory = PC->GetMainWidgetObject()->InventoryWidgetObject;
 
 		FString LoadPath = FPaths::ProjectContentDir() + "Data/Inventory/InventoryData.txt";
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *LoadPath);
 		Inventory->LoadDatasFromFile(LoadPath);
 	}
 }
@@ -246,35 +246,46 @@ void APlayerPawn::StopSprint()
 	C2S_SetSprint(false);
 }
 
-void APlayerPawn::C2S_SetWeapon_Implementation(bool State)
+void APlayerPawn::ArmWeapon(FItemDataTable ItemData)
 {
-	bHaveWeapon = true;
+	C2S_SetWeapon(true, ItemData);
 }
 
-void APlayerPawn::HaveWeapon()
+void APlayerPawn::DisArmWeapon()
 {
-	bHaveWeapon = true;
+	FItemDataTable TempData;
+	TempData.EquipType = ESlotType::NotUse;
 
-	ABattlePC* PC = Cast<ABattlePC>(GetController());
-	if (PC)
-	{
-		PC->BattleWidgetObject->ShowCrosshair();
-	}
-
-	C2S_SetWeapon(true);
+	C2S_SetWeapon(false, TempData);
 }
 
-void APlayerPawn::DropWeapon()
+void APlayerPawn::C2S_SetWeapon_Implementation(bool NewState, FItemDataTable NewData)
 {
-	bHaveWeapon = false;
+	S2A_SetWeapon(NewState, NewData);
+}
 
-	ABattlePC* PC = Cast<ABattlePC>(GetController());
-	if (PC)
+void APlayerPawn::S2A_SetWeapon_Implementation(bool NewState, FItemDataTable NewData)
+{
+	bHaveWeapon = NewState;
+
+	if (NewState)
 	{
-		PC->BattleWidgetObject->HideCrosshair();
-	}
+		// 무기 장착
+		FStreamableManager Loader;
+		USkeletalMesh* TempMesh = Loader.LoadSynchronous<USkeletalMesh>(NewData.ItemSkeletalMesh);
+		Weapon->SetSkeletalMesh(TempMesh);
 
-	C2S_SetWeapon(false);
+		// 애니메이션 스테이트 머신 변경
+		Weapon->WeaponData = NewData;
+	}
+	else
+	{
+		// 무기 해제
+		Weapon->SetSkeletalMesh(nullptr);
+
+		// 애니메이션 스테이트 머신 변경
+		Weapon->WeaponData = NewData;
+	}
 }
 
 void APlayerPawn::C2S_SetFire_Implementation(bool State)
@@ -353,8 +364,16 @@ void APlayerPawn::C2S_SetIronsight_Implementation(bool State)
 
 void APlayerPawn::StartIronsight()
 {
+	// 점프 중 Ironsight 불가.
 	if (GetCharacterMovement()->IsFalling())
 		return;
+
+	// Ironsight 상태에서는 조준점 표시.
+	ABattlePC* PC = Cast<ABattlePC>(GetController());
+	if (PC)
+	{
+		PC->BattleWidgetObject->ShowCrosshair();
+	}
 
 	bIsIronsight = true;
 	C2S_SetIronsight(true);
@@ -362,12 +381,23 @@ void APlayerPawn::StartIronsight()
 
 void APlayerPawn::StopIronsight()
 {
+	// 조준점 해제.
+	ABattlePC* PC = Cast<ABattlePC>(GetController());
+	if (PC)
+	{
+		PC->BattleWidgetObject->HideCrosshair();
+	}
+
 	bIsIronsight = false;
 	C2S_SetIronsight(false);
 }
 
 void APlayerPawn::StartCrouch()
 {
+	// 점프 중 Ironsight 불가.
+	if (GetCharacterMovement()->IsFalling())
+		return;
+
 	if (CanCrouch())
 	{
 		Crouch();
@@ -477,12 +507,12 @@ void APlayerPawn::C2S_ProcessFire_Implementation(FVector TraceStart, FVector Tra
 		S2A_SpawnHitEffectAndDecal(OutHit);
 
 		//Point Damage
-		UGameplayStatics::ApplyPointDamage(OutHit.GetActor(), //맞은놈
-			1.0f,					//데미지
-			-OutHit.ImpactNormal,	//데미지 방향
-			OutHit,					//데미지 충돌 정보
-			GetController(),		//때린 플레이어
-			this,					//때린놈
+		UGameplayStatics::ApplyPointDamage(OutHit.GetActor(),
+			Weapon->WeaponData.iValue2,
+			-OutHit.ImpactNormal,
+			OutHit,
+			GetController(),
+			this,
 			nullptr
 		);
 
@@ -616,29 +646,42 @@ void APlayerPawn::S2C_InsertItem_Implementation(FItemDataTable ItemData)
 	Inventory->AddItem(ItemData, 1);
 }
 
-void APlayerPawn::UseItem(FItemDataTable ItemData)
+void APlayerPawn::UseItem(UInventorySlotWidgetBase* NewSlot, FItemDataTable NewData)
 {
-	switch (ItemData.ItemType)
+	switch (NewData.ItemType)
 	{
 	case EItemType::Consume:
 	{
-		C2S_RescueHP(ItemData.fValue1);
+		C2S_RescueHP(NewData.fValue1);
+
+		NewSlot->SubCount(1);
 	}
 	break;
 
 	case EItemType::Equip:
 	{
-		switch (ItemData.EquipType)
+		switch (NewData.EquipType)
 		{
 		case ESlotType::Weapon:
 		{
-			HaveWeapon();
+			// 기존 무기 Slot의 사용 마크를 해제.
+			if (UsingSlot != nullptr)
+				UsingSlot->UnDoHighlightSlotBG();
 
-			FStreamableManager Loader;
-			USkeletalMesh* TempMesh = Loader.LoadSynchronous<USkeletalMesh>(ItemData.ItemSkeletalMesh);
-			Weapon->SetSkeletalMesh(TempMesh);
+			// 새로운 무기 Slot에 마크.
+			if (UsingSlot != NewSlot)
+			{
+				UsingSlot = NewSlot;
+				UsingSlot->DoHighlightSlotBG();
 
-			C2S_ArmWeapon(TempMesh);
+				ArmWeapon(NewData);
+			}
+			// 이미 마크한 Slot이면 무기 장착을 해제.
+			else
+			{
+				UsingSlot = nullptr;
+				DisArmWeapon();
+			}
 		}
 		break;
 		case ESlotType::Head:
@@ -677,12 +720,3 @@ void APlayerPawn::S2A_SpawnRescueEffect_Implementation()
 	};
 }
 
-void APlayerPawn::C2S_ArmWeapon_Implementation(USkeletalMesh* WeaponMesh)
-{
-	S2A_ArmWeapon(WeaponMesh);
-}
-
-void APlayerPawn::S2A_ArmWeapon_Implementation(USkeletalMesh* WeaponMesh)
-{
-	Weapon->SetSkeletalMesh(WeaponMesh);
-}

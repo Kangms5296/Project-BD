@@ -26,6 +26,7 @@ public:
 
 	class UImage* I_ItemThumnail;
 	class UTextBlock* T_ItemCount;
+	class UImage* I_UsingMark;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Slot")
 	int RowIndex;
@@ -52,4 +53,7 @@ public:
 
 	bool DoChangeThumnail;
 	void DragSlotSet(FItemDataTable ItemData);
+
+	void DoHighlightSlotBG();
+	void UnDoHighlightSlotBG();
 };

@@ -64,12 +64,16 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category = "Status")
 	uint64 bHaveWeapon : 1;
 
-	UFUNCTION(Server, Reliable)
-	void C2S_SetWeapon(bool State);
-	void C2S_SetWeapon_Implementation(bool State);
+	void ArmWeapon(FItemDataTable ItemData);
+	void DisArmWeapon();
 
-	void HaveWeapon();
-	void DropWeapon();
+	UFUNCTION(Server, Reliable)
+	void C2S_SetWeapon(bool NewState, FItemDataTable NewData);
+	void C2S_SetWeapon_Implementation(bool NewState, FItemDataTable NewData);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void S2A_SetWeapon(bool NewState, FItemDataTable NewData);
+	void S2A_SetWeapon_Implementation(bool NewState, FItemDataTable NewData);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category = "Status")
 	uint64 bIsFire : 1;
@@ -214,7 +218,8 @@ public:
 	void S2C_InsertItem(FItemDataTable ItemData);
 	void S2C_InsertItem_Implementation(FItemDataTable ItemData);
 
-	void UseItem(FItemDataTable ItemData);
+	class UInventorySlotWidgetBase* UsingSlot;
+	void UseItem(class UInventorySlotWidgetBase* NewSlot, FItemDataTable NewData);
 
 	UFUNCTION(Server, Reliable)
 	void C2S_RescueHP(int RescueValue);
@@ -223,12 +228,4 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void S2A_SpawnRescueEffect();
 	void S2A_SpawnRescueEffect_Implementation();
-
-	UFUNCTION(Server, Reliable)
-	void C2S_ArmWeapon(class USkeletalMesh* WeaponMesh);
-	void C2S_ArmWeapon_Implementation(class USkeletalMesh* WeaponMesh);
-
-	UFUNCTION(NetMulticast, Reliable)
-	void S2A_ArmWeapon(class USkeletalMesh* WeaponMesh);
-	void S2A_ArmWeapon_Implementation(class USkeletalMesh* WeaponMesh);
 };

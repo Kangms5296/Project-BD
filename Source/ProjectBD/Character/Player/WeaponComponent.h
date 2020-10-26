@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "../../Item/ItemDataTable.h"
 #include "WeaponComponent.generated.h"
 
 /**
@@ -14,4 +15,6 @@ class PROJECTBD_API UWeaponComponent : public USkeletalMeshComponent
 {
 	GENERATED_BODY()
 	
+public:
+	FItemDataTable WeaponData;
 };

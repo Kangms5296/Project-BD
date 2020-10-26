@@ -35,6 +35,12 @@ void UInventorySlotWidgetBase::NativeConstruct()
 	{
 		T_ItemCount->SetVisibility(ESlateVisibility::Collapsed);
 	}
+
+	I_UsingMark = Cast<UImage>(GetWidgetFromName(TEXT("I_UsingMark")));
+	if (I_UsingMark)
+	{
+		I_UsingMark->SetVisibility(ESlateVisibility::Collapsed);
+	}
 }
 
 void UInventorySlotWidgetBase::NativeOnMouseEnter(const FGeometry & InGeometry, const FPointerEvent & InMouseEvent)
@@ -91,8 +97,7 @@ FReply UInventorySlotWidgetBase::NativeOnMouseButtonDown(const FGeometry & InGeo
 				APlayerPawn* Pawn = Cast<APlayerPawn>(PC->GetPawn());
 				if (Pawn)
 				{
-					Pawn->UseItem(CurrentItem);
-					SubCount(1);
+					Pawn->UseItem(this, CurrentItem);
 
 					// Ironsight 모드로의 진입을 막는다.
 					Reply = UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::RightMouseButton);
@@ -262,5 +267,21 @@ void UInventorySlotWidgetBase::DragSlotSet(FItemDataTable ItemData)
 	{
 		CurrentItem = ItemData;
 		DoChangeThumnail = true;
+	}
+}
+
+void UInventorySlotWidgetBase::DoHighlightSlotBG()
+{
+	if (I_UsingMark)
+	{
+		I_UsingMark->SetVisibility(ESlateVisibility::Visible);
+	}
+}
+
+void UInventorySlotWidgetBase::UnDoHighlightSlotBG()
+{
+	if (I_UsingMark)
+	{
+		I_UsingMark->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
