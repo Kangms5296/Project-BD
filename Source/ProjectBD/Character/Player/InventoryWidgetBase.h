@@ -46,4 +46,9 @@ public:
 
 	void LoadDatasFromFile(FString SavedPath);
 	void SaveDatasToFile(FString SavePath);
+
+	bool AddCount(int Index, int Count); // 해당 Index의 아이템이 존재하면, 그 Slot으로 아이템 추가
+	bool SubCount(int Index, int Count); // 해당 Index의 아이템이 존재하면, 그 Slot에서 아이템 사용
+
+	int GetCount(int Index); // 해당 Index에 해당하는 아이템 수 반환
 };

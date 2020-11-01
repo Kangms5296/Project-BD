@@ -17,4 +17,5 @@ class PROJECTBD_API UWeaponComponent : public USkeletalMeshComponent
 	
 public:
 	FItemDataTable WeaponData;
+	class UInventorySlotWidgetBase* UsingSlot;
 };

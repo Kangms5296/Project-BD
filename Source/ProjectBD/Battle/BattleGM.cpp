@@ -46,7 +46,7 @@ void ABattleGM::BeginPlay()
 		for (int i = 0; i < ItemPoints.Num(); ++i)
 		{
 			AMasterItem* NewItem = GetWorld()->SpawnActor<AMasterItem>(SpawnItemClass, ItemPoints[i]->GetActorTransform());
-			NewItem->Init(Cast<UBDGameInstance>(GetGameInstance())->GetItemData(FMath::RandRange(1, 4)));
+			NewItem->Init(Cast<UBDGameInstance>(GetGameInstance())->GetItemData(FMath::RandRange(1, 5)));
 		}
 	}), WaitTime, false);
 }

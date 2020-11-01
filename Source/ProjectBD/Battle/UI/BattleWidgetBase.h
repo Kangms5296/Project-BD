@@ -34,4 +34,15 @@ public:
 
 	void ShowCrosshair();
 	void HideCrosshair();
+
+	UPROPERTY()
+	class UImage* BulletImage;
+
+	UPROPERTY()
+	class UTextBlock* WeaponCount;
+
+	void SetWeaponCount(FString NewCount);
+
+	void ShowWeaponInfo();
+	void HideWeaponInfo();
 };

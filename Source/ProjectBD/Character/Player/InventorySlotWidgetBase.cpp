@@ -158,11 +158,21 @@ bool UInventorySlotWidgetBase::NativeOnDrop(const FGeometry & InGeometry, const 
 	{
 		if (IsUsing)
 		{
-			FItemDataTable TempData = CurrentItem;
-			int TempCount = ItemCount;
+			if (FromSlot->CurrentItem.ItemIndex == CurrentItem.ItemIndex)
+			{
+				int MoveCount = CurrentItem.Value2 - ItemCount > FromSlot->ItemCount ? FromSlot->ItemCount : CurrentItem.Value2 - ItemCount;
 
-			InventoryWidget->SetSlot(RowIndex, ColIndex, FromSlot->CurrentItem, FromSlot->ItemCount);
-			InventoryWidget->SetSlot(FromSlot->RowIndex, FromSlot->ColIndex, TempData, TempCount);
+				FromSlot->SubCount(MoveCount);
+				AddCount(MoveCount);
+			}
+			else
+			{
+				FItemDataTable TempData = CurrentItem;
+				int TempCount = ItemCount;
+
+				InventoryWidget->SetSlot(RowIndex, ColIndex, FromSlot->CurrentItem, FromSlot->ItemCount);
+				InventoryWidget->SetSlot(FromSlot->RowIndex, FromSlot->ColIndex, TempData, TempCount);
+			}
 		}
 		else
 		{
@@ -170,9 +180,20 @@ bool UInventorySlotWidgetBase::NativeOnDrop(const FGeometry & InGeometry, const 
 			InventoryWidget->ResetSlot(FromSlot->RowIndex, FromSlot->ColIndex);
 		}
 
+		if (FromSlot->IsHighlight)
+		{
+			FromSlot->UnDoHighlightSlotBG();
+			DoHighlightSlotBG();
+		}
+		else if (IsHighlight)
+		{
+			UnDoHighlightSlotBG();
+			FromSlot->DoHighlightSlotBG();
+		}
+
 		return true;
 	}
-	
+
 	return false;
 }
 
@@ -275,6 +296,8 @@ void UInventorySlotWidgetBase::DoHighlightSlotBG()
 	if (I_UsingMark)
 	{
 		I_UsingMark->SetVisibility(ESlateVisibility::Visible);
+
+		IsHighlight = true;
 	}
 }
 
@@ -283,5 +306,7 @@ void UInventorySlotWidgetBase::UnDoHighlightSlotBG()
 	if (I_UsingMark)
 	{
 		I_UsingMark->SetVisibility(ESlateVisibility::Collapsed);
+
+		IsHighlight = false;
 	}
 }

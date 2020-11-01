@@ -62,7 +62,7 @@ bool UInventoryWidgetBase::AddItem(FItemDataTable ItemData, int Count)
 	{
 		if (Slots[i]->IsUsing && Slots[i]->CurrentItem.ItemIndex == ItemData.ItemIndex)
 		{
-			if (Slots[i]->ItemCount + Count <= ItemData.iValue1)
+			if (Slots[i]->ItemCount + Count <= ItemData.Value2)
 			{
 				bool Result = Slots[i]->AddCount(Count);
 				if (Result)
@@ -73,8 +73,8 @@ bool UInventoryWidgetBase::AddItem(FItemDataTable ItemData, int Count)
 			}
 			else
 			{
-				Slots[i]->AddCount(ItemData.iValue1 - Slots[i]->ItemCount);
-				Count -= ItemData.iValue1 - Slots[i]->ItemCount;
+				Slots[i]->AddCount(ItemData.Value2 - Slots[i]->ItemCount);
+				Count -= ItemData.Value2 - Slots[i]->ItemCount;
 			}
 		}
 	}
@@ -203,5 +203,42 @@ void UInventoryWidgetBase::SaveDatasToFile(FString SavePath)
 		// Save File
 		BDInstance->GetJsonHelper()->SaveToFile(OutputString, SavePath);
 	}
+}
+
+bool UInventoryWidgetBase::AddCount(int Index, int Count)
+{
+	// 현재 가지고 있는 아이템 중 ItemData의 ItemIndex에 해당하는 아이템이 있는지 확인
+	for (int i = 0; i < Slots.Num(); i++)
+		if (Slots[i]->IsUsing && Slots[i]->CurrentItem.ItemIndex == Index)
+			// 있으면 SubCount 실행
+			return Slots[i]->AddCount(Count);
+
+	// 기존에 아이템이 없는 경우
+	return false;
+}
+
+bool UInventoryWidgetBase::SubCount(int Index, int Count)
+{
+	// 현재 가지고 있는 아이템 중 ItemData의 ItemIndex에 해당하는 아이템이 있는지 확인
+	for (int i = 0; i < Slots.Num(); i++)
+		if (Slots[i]->IsUsing && Slots[i]->CurrentItem.ItemIndex == Index)
+			// 있으면 SubCount 실행
+			return Slots[i]->SubCount(Count);
+
+	// 기존에 아이템이 없는 경우
+	return false;
+}
+
+int UInventoryWidgetBase::GetCount(int Index)
+{
+	int SumCount = 0;
+
+	// 현재 가지고 있는 아이템 중 ItemData의 ItemIndex에 해당하는 아이템이 있는지 확인
+	for (int i = 0; i < Slots.Num(); i++)
+		if (Slots[i]->IsUsing && Slots[i]->CurrentItem.ItemIndex == Index)
+			// 수 증감
+			SumCount += Slots[i]->ItemCount;
+
+	return SumCount;
 }
 

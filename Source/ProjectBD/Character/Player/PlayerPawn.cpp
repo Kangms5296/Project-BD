@@ -139,7 +139,7 @@ void APlayerPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerPawn, bRightLean);
 	DOREPLIFETIME(APlayerPawn, bHaveWeapon);
 	DOREPLIFETIME(APlayerPawn, bIsFire);
-	//DOREPLIFETIME(APlayerPawn, bIsReload);
+	DOREPLIFETIME(APlayerPawn, bIsReload);
 	DOREPLIFETIME(APlayerPawn, bIsIronsight);
 }
 
@@ -312,14 +312,22 @@ void APlayerPawn::StopFire()
 
 void APlayerPawn::OnFire()
 {
-	if (!bIsFire)
+	if (!bIsFire || GetCharacterMovement()->IsFalling() || bIsReload || Weapon->WeaponData.Value4 <= 0)
 	{
+		bIsFire = false;
 		return;
 	}
 
-	APlayerController* PC = Cast<APlayerController>(GetController());
+	ABattlePC* PC = Cast<ABattlePC>(GetController());
 	if (PC)
 	{
+		// 총알 사용
+		--(Weapon->WeaponData.Value4);
+		if (PC->BattleWidgetObject)
+		{
+			PC->BattleWidgetObject->SetWeaponCount(FString::FromInt(Weapon->WeaponData.Value4) + " / " + FString::FromInt(Weapon->WeaponData.Value5));
+		}
+
 		int32 ScreenSizeX;
 		int32 ScreenSizeY;
 		FVector CrosshairWorldPosition; //3D
@@ -410,12 +418,46 @@ void APlayerPawn::StartCrouch()
 
 void APlayerPawn::C2S_SetReload_Implementation(bool newState)
 {
-
+	bIsReload = newState;
 }
 
 void APlayerPawn::Reload()
 {
+	// 재장전할 상황이 아니면 재장전 불가
+	if (GetCharacterMovement()->IsFalling() || Weapon->WeaponData.ItemType == EItemType::Unknown)
+	{
+		return;
+	}
 
+	// 총알이 없으면 재장전 불가
+	if (Inventory)
+	{
+		if (Inventory->GetCount(999) <= 0)
+		{
+			return;
+		}
+	}
+
+	bIsReload = true;
+	C2S_SetReload(true);
+}
+
+void APlayerPawn::ReloadEnd()
+{
+	ABattlePC* PC = Cast<ABattlePC>(GetController());
+	if (PC && PC->BattleWidgetObject)
+	{
+		// 인벤토리에서 사용 가능한 총알 수 확인
+		int ReloadCount = Inventory->GetCount(999);
+		ReloadCount > Weapon->WeaponData.Value5 - Weapon->WeaponData.Value4 ? ReloadCount = Weapon->WeaponData.Value5 - Weapon->WeaponData.Value4 : ReloadCount;
+
+		// 최대 장전 수를 넘지 않는 값만큼 장전
+		Weapon->WeaponData.Value4 = Weapon->WeaponData.Value4 + ReloadCount;
+		PC->BattleWidgetObject->SetWeaponCount(FString::FromInt(Weapon->WeaponData.Value4) + " / " + FString::FromInt(Weapon->WeaponData.Value5));
+
+		// 인벤토리에서 장전한 만큼 총알 아이템 삭제
+		Inventory->SubCount(999, ReloadCount);
+	}
 }
 
 void APlayerPawn::OnRep_CurrentHP()
@@ -508,7 +550,7 @@ void APlayerPawn::C2S_ProcessFire_Implementation(FVector TraceStart, FVector Tra
 
 		//Point Damage
 		UGameplayStatics::ApplyPointDamage(OutHit.GetActor(),
-			Weapon->WeaponData.iValue2,
+			Weapon->WeaponData.Value3,
 			-OutHit.ImpactNormal,
 			OutHit,
 			GetController(),
@@ -643,7 +685,7 @@ void APlayerPawn::C2S_CheckPickupItem_Implementation(AMasterItem * NearItem)
 
 void APlayerPawn::S2C_InsertItem_Implementation(FItemDataTable ItemData)
 {
-	Inventory->AddItem(ItemData, 1);
+	Inventory->AddItem(ItemData, ItemData.Value1);
 }
 
 void APlayerPawn::UseItem(UInventorySlotWidgetBase* NewSlot, FItemDataTable NewData)
@@ -652,7 +694,7 @@ void APlayerPawn::UseItem(UInventorySlotWidgetBase* NewSlot, FItemDataTable NewD
 	{
 	case EItemType::Consume:
 	{
-		C2S_RescueHP(NewData.fValue1);
+		C2S_RescueHP(NewData.Value3);
 
 		NewSlot->SubCount(1);
 	}
@@ -660,6 +702,13 @@ void APlayerPawn::UseItem(UInventorySlotWidgetBase* NewSlot, FItemDataTable NewD
 
 	case EItemType::Equip:
 	{
+		// 기존에 사용하는 무기의 Slot에, 기존의 무기 정보를 저장.
+		if (Weapon->UsingSlot)
+		{
+			Weapon->UsingSlot->CurrentItem = Weapon->WeaponData;
+		}
+		Weapon->UsingSlot = NewSlot;
+
 		switch (NewData.EquipType)
 		{
 		case ESlotType::Weapon:
@@ -675,12 +724,25 @@ void APlayerPawn::UseItem(UInventorySlotWidgetBase* NewSlot, FItemDataTable NewD
 				UsingSlot->DoHighlightSlotBG();
 
 				ArmWeapon(NewData);
+
+				ABattlePC* PC = Cast<ABattlePC>(GetController());
+				if (PC && PC->BattleWidgetObject)
+				{
+					PC->BattleWidgetObject->SetWeaponCount(FString::FromInt(NewData.Value4) + " / " + FString::FromInt(NewData.Value5));
+					PC->BattleWidgetObject->ShowWeaponInfo();
+				}
 			}
 			// 이미 마크한 Slot이면 무기 장착을 해제.
 			else
 			{
 				UsingSlot = nullptr;
 				DisArmWeapon();
+
+				ABattlePC* PC = Cast<ABattlePC>(GetController());
+				if (PC && PC->BattleWidgetObject)
+				{
+					PC->BattleWidgetObject->HideWeaponInfo();
+				}
 			}
 		}
 		break;

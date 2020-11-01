@@ -116,6 +116,7 @@ public:
 	void C2S_SetReload_Implementation(bool newState);
 
 	void Reload();
+	void ReloadEnd();
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
 	class UWeaponComponent* Weapon;

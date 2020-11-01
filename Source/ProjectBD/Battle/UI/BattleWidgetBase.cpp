@@ -13,6 +13,10 @@ void UBattleWidgetBase::NativeConstruct()
 
 	CrossHair = Cast<UImage>(GetWidgetFromName(TEXT("CrossHair")));
 	HideCrosshair();
+
+	BulletImage = Cast<UImage>(GetWidgetFromName(TEXT("BulletImage")));
+	WeaponCount = Cast<UTextBlock>(GetWidgetFromName(TEXT("WeaponCount")));
+	HideWeaponInfo();
 }
 
 void UBattleWidgetBase::SetAliveCount(int NewCount)
@@ -45,5 +49,39 @@ void UBattleWidgetBase::HideCrosshair()
 	if (CrossHair)
 	{
 		CrossHair->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
+
+void UBattleWidgetBase::SetWeaponCount(FString NewCount)
+{
+	if (WeaponCount)
+	{
+		WeaponCount->SetText(FText::FromString(NewCount));
+	}
+}
+
+void UBattleWidgetBase::ShowWeaponInfo()
+{
+	if (WeaponCount)
+	{
+		WeaponCount->SetVisibility(ESlateVisibility::Visible);
+	}
+
+	if (BulletImage)
+	{
+		BulletImage->SetVisibility(ESlateVisibility::Visible);
+	}
+}
+
+void UBattleWidgetBase::HideWeaponInfo()
+{
+	if (WeaponCount)
+	{
+		WeaponCount->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
+	if (BulletImage)
+	{
+		BulletImage->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }

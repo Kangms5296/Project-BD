@@ -60,5 +60,7 @@ void UPlayerAnimInstance::AnimNotify_ReloadEnd(UAnimNotify* AnimNotify)
 		bIsReload = false;
 		Pawn->bIsReload = false;
 		Pawn->C2S_SetReload(false);
+
+		Pawn->ReloadEnd();
 	}
 }
